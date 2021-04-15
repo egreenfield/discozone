@@ -1,0 +1,12 @@
+[Unit]
+Description=Disco Zone
+After=multi-user.target
+ 
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/dev/USTest/
+ExecStart=/usr/bin/python /home/pi/dev/USTest/run.py
+Restart=on-abort
+ 
+[Install]
+WantedBy=multi-user.target
