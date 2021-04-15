@@ -10,6 +10,7 @@ import time
 import subprocess
 import datetime
 import os
+from threading import Thread
 
 # config
 DISTANCE_IN_CM = 60
@@ -178,6 +179,10 @@ def loop(appState):
         time.sleep(.2)
         
 
+def doNothing():
+    while(True):
+        time.sleep(.2)
+
 def destroy():
     destroyMotor()
     GPIO.cleanup()
@@ -188,7 +193,9 @@ if __name__ == '__main__':     # Program entrance
     setup(appState)
     setupMotor()
     try:
-        loop(appState)
+        thread = Thread(target=loop,args=(appState,))
+        thread.run()
+        thread.join()
     except KeyboardInterrupt:  # Press ctrl-c to end the program.
         destroy()
 
