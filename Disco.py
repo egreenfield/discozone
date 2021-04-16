@@ -103,7 +103,7 @@ class Disco:
 
         self.state = DiscoState.PLAYING
         self.motor(128 + 128 * MOTOR_SPEED)
-        self.audioProcess = subprocess.Popen(['cvlc', 'disco.m4a', 'vlc://quit'])
+        self.audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
         time.sleep(4)
         self.startVideo()
 
