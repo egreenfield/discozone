@@ -6,6 +6,7 @@ import subprocess
 import datetime
 import os
 from threading import Thread
+from dataclasses import dataclass
 
 # config
 DISTANCE_IN_CM = 60
@@ -22,6 +23,15 @@ motoRPin2 = 11
 enablePin = 15
 #adc = ADCDevice() # Define an ADCDevice class object
 
+
+@dataclass
+class DiscoFeatures:
+    ball:bool = True
+    music:bool = True
+    video:bool = True    
+
+
+
 def mapNUM(value,fromLow,fromHigh,toLow,toHigh):
     return (toHigh-toLow)*(value-fromLow) / (fromHigh-fromLow) + toLow
 
@@ -31,6 +41,9 @@ class Disco:
     currentVideoName: str = ""
     videoProcess: subprocess.Popen = None
     p = None
+
+    def __init__(self,features):
+        self.features = features
 
     def setup(self):
         self.setupMotor()
@@ -64,13 +77,16 @@ class Disco:
 
 
     def startVideo(self):
-
+        if(self.features.video == False):
+            return
         now = datetime.datetime.now()
         self.currentVideoName = f'{now.year}_{now.month}_{now.day}_{now.hour}_{now.minute}_{now.second}'
         print(f'video name is {self.currentVideoName}')
         self.videoProcess = subprocess.Popen(['raspivid', '-o', f'{self.currentVideoName}.h264', '-t', '30000'])
 
     def stopVideo(self):
+        if(self.features.video == False):
+            return
         if(self.videoProcess != None):
             h264Name = f'{self.currentVideoName}.h264'
             self.videoProcess.terminate()

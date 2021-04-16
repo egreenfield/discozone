@@ -3,7 +3,7 @@
 import RPi.GPIO as GPIO
 import time
 from threading import Thread
-from Disco import Disco, DiscoState
+from Disco import Disco, DiscoState, DiscoFeatures
 from dataclasses import dataclass
 
 ################################################################################################
@@ -78,7 +78,7 @@ def findSomeone(appState):
 #
 
 def setup(appState):
-    appState.disco = Disco()
+    appState.disco = Disco(DiscoFeatures(video=False))
     setupSonar(appState)
     appState.disco.setup()
 
