@@ -98,7 +98,7 @@ class Disco:
             self.currentVideoName = ''
 
     def startAudio(self):
-        if(self.features.audio == False):
+        if(self.features.music == False):
             return
         self.audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
 
@@ -124,7 +124,7 @@ class Disco:
         self.state = DiscoState.LOOKING
 
     def checkForEndOfSong(self):
-        if(self.features.audio == False):
+        if(self.features.music == False):
             return
         if(self.state != DiscoState.PLAYING):
             return

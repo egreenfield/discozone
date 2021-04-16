@@ -78,7 +78,7 @@ def findSomeone(appState):
 #
 
 def setup(appState):
-    appState.disco = Disco(DiscoFeatures(video=False))
+    appState.disco = Disco(DiscoFeatures(video=False, music=True))
     setupSonar(appState)
     appState.disco.setup()
 
