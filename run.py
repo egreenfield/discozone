@@ -3,7 +3,7 @@
 import RPi.GPIO as GPIO
 import time
 from threading import Thread
-from Disco import Disco, DiscoState, DiscoFeatures
+from Disco import Disco, DiscoState, DiscoFeatures, Events
 from dataclasses import dataclass
 
 ################################################################################################
@@ -62,7 +62,7 @@ def findSomeone(appState):
     if(appState.disco.state == DiscoState.LOOKING):
         print(f'LOOKING: sonar returned distance of {distance}')
     if (distance > 5 and distance < DISTANCE_IN_CM):
-        appState.disco.foundSomeone()
+        appState.disco.addEvent(Events.PersonApproaching)
 
 
 # def waitForClear(appState):

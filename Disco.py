@@ -7,6 +7,7 @@ import datetime
 import os
 from threading import Thread
 from dataclasses import dataclass
+from collections import deque
 
 # config
 DISTANCE_IN_CM = 60
@@ -18,6 +19,13 @@ class DiscoState(Enum):
     CLEARING = 2
     PLAYING = 3
 
+class Events(Enum):
+    PersonApproaching = 1
+    SongStopped = 2
+    RemoteStart = 3 
+    RemoteStop = 4
+
+# Pin Assignments
 motoRPin1 = 13
 motoRPin2 = 11
 enablePin = 15
@@ -41,6 +49,8 @@ class Disco:
     currentVideoName: str = ""
     videoProcess: subprocess.Popen = None
     p = None
+    events = deque()
+    newEvents = deque()
 
     def __init__(self,features):
         self.features = features
@@ -115,6 +125,8 @@ class Disco:
         self.startVideo()
 
     def endDiscoSession(self):    
+        if(self.state != DiscoState.PLAYING):
+            return
         self.state = DiscoState.CLEARING
         self.audioProcess = None
         self.motor(128)
@@ -124,16 +136,11 @@ class Disco:
         self.state = DiscoState.LOOKING
 
     def checkForEndOfSong(self):
-        if(self.features.music == False):
-            return
-        if(self.state != DiscoState.PLAYING):
-            return
-        if(self.audioProcess == None):
-            self.endDiscoSession();
-        else:
+        if(self.audioProcess != None):
             result = self.audioProcess.poll();
             if (result != None):
-                self.endDiscoSession();
+                self.addEvent(Events.SongStopped)
+                self.audioProcess = None
 
     def waitForClear(self):
         if(self.state != DiscoState.CLEARING):
@@ -143,6 +150,29 @@ class Disco:
     def shutdown(self):
         self.destroyMotor()
     
+    def processEvent(self,event):
+        if (event == Events.PersonApproaching):
+            self.foundSomeone()
+        elif (event == Events.SongStopped):
+            self.endDiscoSession()
+        elif (event == Events.RemoteStart):
+            None
+        elif (event == Events.RemoteEnd):
+            None
+
     def pump(self):
+        newEvents = self.newEvents
+        self.newEvents = self.events
+        self.events = newEvents
+
+        for event in newEvents:
+            self.processEvent(event)
+        newEvents.clear()
+
+
         self.checkForEndOfSong();
         self.waitForClear()
+
+    def addEvent(self,event):
+        self.newEvents.append(event)
+    
