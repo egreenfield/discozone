@@ -97,17 +97,24 @@ class Disco:
                 os.remove(h264Name)
             self.currentVideoName = ''
 
+    def startAudio(self):
+        if(self.features.audio == False):
+            return
+        self.audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
+
     def foundSomeone(self):
         if(self.state != DiscoState.LOOKING):
             return
+        self.startDiscoSession()
 
+    def startDiscoSession(self):
         self.state = DiscoState.PLAYING
         self.motor(128 + 128 * MOTOR_SPEED)
-        self.audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
+        self.startAudio()
         time.sleep(4)
         self.startVideo()
 
-    def stopPlaying(self):    
+    def endDiscoSession(self):    
         self.state = DiscoState.CLEARING
         self.audioProcess = None
         self.motor(128)
@@ -117,14 +124,16 @@ class Disco:
         self.state = DiscoState.LOOKING
 
     def checkForEndOfSong(self):
+        if(self.features.audio == False):
+            return
         if(self.state != DiscoState.PLAYING):
             return
         if(self.audioProcess == None):
-            self.stopPlaying();
+            self.endDiscoSession();
         else:
             result = self.audioProcess.poll();
             if (result != None):
-                self.stopPlaying();
+                self.endDiscoSession();
 
     def waitForClear(self):
         if(self.state != DiscoState.CLEARING):
