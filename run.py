@@ -3,7 +3,8 @@
 import RPi.GPIO as GPIO
 import time
 from threading import Thread
-from Disco import Disco, DiscoState, DiscoFeatures, Events
+from disco_machine import DiscoMachine
+import disco
 from dataclasses import dataclass
 
 ################################################################################################
@@ -13,7 +14,7 @@ from dataclasses import dataclass
 
 @dataclass
 class AppState:
-    disco: Disco = None
+    machine: DiscoMachine = None
 
 
 ################################################################################################
@@ -59,17 +60,17 @@ def setupSonar(appState):
 
 def findSomeone(appState):
     distance = getSonar() # get distance
-    if(appState.disco.state == DiscoState.LOOKING):
+    if(appState.machine.state == disco.State.LOOKING):
         print(f'LOOKING: sonar returned distance of {distance}')
     if (distance > 5 and distance < DISTANCE_IN_CM):
-        appState.disco.addEvent(Events.PersonApproaching)
+        appState.machine.addEvent(disco.Events.PersonApproaching)
 
 
 # def waitForClear(appState):
 #     distance = getSonar() # get distance
 #     print(f'CLEARING: sonar returned distance of {distance}')
 #     if (distance >= DISTANCE_IN_CM):
-#         appState.disco.startLooking();
+#         appState.machine.startLooking();
 
 
 ################################################################################################
@@ -78,18 +79,18 @@ def findSomeone(appState):
 #
 
 def setup(appState):
-    appState.disco = Disco(DiscoFeatures(video=False, music=True))
+    appState.machine = DiscoMachine(disco.Features(video=False, music=True))
     setupSonar(appState)
-    appState.disco.setup()
+    appState.machine.setup()
 
 def loop(appState):
     while(True):
-        appState.disco.pump()
+        appState.machine.pump()
         findSomeone(appState);
         time.sleep(.2)        
 
 def destroy(appState):
-    appState.disco.shutdown()
+    appState.machine.shutdown()
     GPIO.cleanup()
 
 appState = AppState()
