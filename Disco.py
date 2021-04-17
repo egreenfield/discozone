@@ -8,6 +8,9 @@ import os
 from threading import Thread
 from dataclasses import dataclass
 from collections import deque
+import threading
+
+
 
 # config
 DISTANCE_IN_CM = 60
@@ -51,6 +54,7 @@ class Disco:
     p = None
     events = deque()
     newEvents = deque()
+    eventCondition = threading.Condition(threading.RLock())
 
     def __init__(self,features):
         self.features = features
@@ -161,9 +165,10 @@ class Disco:
             None
 
     def pump(self):
-        newEvents = self.newEvents
-        self.newEvents = self.events
-        self.events = newEvents
+        with self.eventCondition:
+            newEvents = self.newEvents
+            self.newEvents = self.events
+            self.events = newEvents
 
         for event in newEvents:
             self.processEvent(event)
@@ -174,5 +179,6 @@ class Disco:
         self.waitForClear()
 
     def addEvent(self,event):
-        self.newEvents.append(event)
+        with self.eventCondition:
+            self.newEvents.append(event)
     
