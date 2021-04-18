@@ -5,5 +5,7 @@ Tasks:
 * send sms notifications
 * disco count
 * add better person detection
+* create and add ssh keys from cookie
+* add configuration options for where to upload finalized files to
 
 

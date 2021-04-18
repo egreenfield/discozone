@@ -29,7 +29,7 @@ class DiscoMachine:
         self.features = features
         self.tapedeck = Tapedeck(self)
         self.ball = DiscoBall()
-        self.recorder = VideoRecorder()
+        self.recorder = VideoRecorder(features.videoStorage)
 
     def setup(self):
         self.ball.init()

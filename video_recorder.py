@@ -11,8 +11,10 @@ class PackagerThread (threading.Thread):
     videos = deque()
     lock = threading.Condition()
 
-    def __init__(self):
+    def __init__(self,destination):
         threading.Thread.__init__(self,daemon=True)
+        self.fileStorage = destination
+
 
     def run(self):
         while(True):
@@ -26,10 +28,15 @@ class PackagerThread (threading.Thread):
                 
 
             h264Name = f'{videoName}.h264'
-            boxProc = subprocess.Popen(['MP4Box', '-add', h264Name, f'{videoName}.mp4'])
+            mp4Name =  f'{videoName}.mp4'
+            boxProc = subprocess.Popen(['MP4Box', '-add', h264Name, mp4Name])
             boxProc.wait()
             if os.path.exists(h264Name):
                 os.remove(h264Name)             
+            if(self.fileStorage):
+                scpProc = subprocess.Popen(['scp', mp4Name, self.fileStorage])
+                scpProc.wait()
+            
     
     def addVideo(self,videoName):
         with(self.lock):
@@ -41,8 +48,8 @@ class VideoRecorder:
     currentVideoName:str = None
     videoProcess:subprocess.Popen = None
 
-    def __init__(self):
-        self.packager = PackagerThread()
+    def __init__(self,destination):
+        self.packager = PackagerThread(destination)
         self.packager.start()
 
 

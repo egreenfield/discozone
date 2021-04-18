@@ -17,3 +17,4 @@ class Features:
     ball:bool = True
     music:bool = True
     video:bool = True    
+    videoStorage:str = None
