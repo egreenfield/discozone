@@ -7,6 +7,7 @@ import RPi.GPIO as GPIO
 import time
 from disco_machine import DiscoMachine
 from sonar import Sonar
+from webservice import RestService
 
 ################################################################################################
 # 
@@ -22,8 +23,8 @@ class AppState:
 
 def findSomeone(appState):
     distance = appState.sonar.get() # get distance
-    if(appState.machine.state == disco.State.LOOKING):
-        print(f'LOOKING: sonar returned distance of {distance}')
+    # if(appState.machine.state == disco.State.LOOKING):
+    #     print(f'LOOKING: sonar returned distance of {distance}')
     if (distance > 5 and distance < DISTANCE_IN_CM):
         appState.machine.addEvent(disco.Events.PersonApproaching)
 
@@ -33,15 +34,23 @@ def findSomeone(appState):
 # General
 #
 
+running = True
+
 def setup(appState):
     appState.machine = DiscoMachine(disco.Features(video=False, music=True))
     appState.machine.setup()
     appState.sonar = Sonar()
     appState.sonar.setup()
 
-def loop(appState):
-    while(True):
+
+def runMachine(appState):
+    while(running):
         appState.machine.pump()
+        # findSomeone(appState);
+        time.sleep(.2)        
+
+def runSonar(appState):
+    while(running):
         findSomeone(appState);
         time.sleep(.2)        
 
@@ -54,10 +63,17 @@ appState = AppState()
 if __name__ == '__main__':     # Program entrance
     setup(appState)
     try:
-        # thread = Thread(target=loop,args=(appState,))
-        # thread.run()
-        # thread.join()
-        loop(appState)
+        sonarThread = Thread(target=runSonar,args=(appState,))
+        sonarThread.start()
+
+        machineThread = Thread(target=runMachine,args=(appState,))
+        machineThread.start()
+
+        service = RestService(appState.machine)
+        service.start()
+            
     except KeyboardInterrupt:  # Press ctrl-c to end the program.
+        print("INTERRUPT")
+        running = False        
         destroy(appState)
 

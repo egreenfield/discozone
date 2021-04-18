@@ -16,5 +16,8 @@ class Tapedeck:
         thread = threading.Thread(target=playSongAndWait,args=(self.machine,))
         thread.run()
 
+    def stop(self):
+        None
+
 
         

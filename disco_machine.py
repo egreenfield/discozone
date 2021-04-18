@@ -48,6 +48,11 @@ class DiscoMachine:
         if(self.features.music == False):
             return
         self.tapedeck.start()
+    
+    def stopAudio(self):
+        if(self.features.music == False):
+            return
+        self.tapedeck.stop()
 
     def foundSomeone(self):
         if(self.state != disco.State.LOOKING):
@@ -65,6 +70,7 @@ class DiscoMachine:
             return
         self.state = disco.State.CLEARING
         self.ball.stop()
+        self.stopAudio()
         self.stopVideo()
 
     def startLooking(self):
@@ -84,9 +90,9 @@ class DiscoMachine:
         elif (event == disco.Events.SongStopped):
             self.endDiscoSession()
         elif (event == disco.Events.RemoteStart):
-            None
+            self.foundSomeone()
         elif (event == disco.Events.RemoteEnd):
-            None
+            self.endDiscoSession()
 
     def pump(self):
         with self.eventCondition:
