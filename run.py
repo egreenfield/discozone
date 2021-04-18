@@ -8,6 +8,8 @@ import time
 from disco_machine import DiscoMachine
 from sonar import Sonar
 from webservice import RestService
+import logging
+import os
 
 ################################################################################################
 # 
@@ -61,6 +63,8 @@ def destroy(appState):
 appState = AppState()
 
 if __name__ == '__main__':     # Program entrance
+
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
     setup(appState)
     try:
         sonarThread = Thread(target=runSonar,args=(appState,))

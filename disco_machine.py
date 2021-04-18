@@ -9,6 +9,8 @@ import disco
 from disco_ball import DiscoBall
 from video_recorder import VideoRecorder
 
+import logging
+log = logging.getLogger(__name__)
 
 # config
 DISTANCE_IN_CM = 60
@@ -85,10 +87,11 @@ class DiscoMachine:
         self.ball.shutdown()
     
     def setState(self,newState):
-        print(f'switching from{self.state} to {newState}')
+        log.debug(f'switching from {self.state} to {newState}')
         self.state = newState
 
     def processEvent(self,event):
+        log.debug(f'handling event {event}')
         if (event == disco.Events.PersonApproaching):
             self.foundSomeone()
         elif (event == disco.Events.SongStopped):
