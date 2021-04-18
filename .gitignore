@@ -2,3 +2,4 @@
 *.mp4
 *._*
 __pycache__
+config.json

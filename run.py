@@ -39,13 +39,9 @@ def findSomeone(appState):
 running = True
 
 def setup(appState):
-    appState.machine = DiscoMachine(
-        disco.Features(
-            video=True, 
-            music=False,
-            videoStorage="disco@192.168.1.100:~/Pictures/disco"
-        )
-    )
+    features = disco.Features.load('config.json')
+
+    appState.machine = DiscoMachine(features)
     appState.machine.setup()
     appState.sonar = Sonar()
     appState.sonar.setup()

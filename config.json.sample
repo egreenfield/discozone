@@ -1,0 +1,6 @@
+{
+    "video": false,
+    "music": true,
+    "ball": true,
+    "videoStorage":"scp path"
+}
