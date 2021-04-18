@@ -60,7 +60,7 @@ class DiscoMachine:
         self.startDiscoSession()
 
     def startDiscoSession(self):
-        self.state = disco.State.PLAYING
+        self.setState(disco.State.PLAYING)
         self.ball.spin()
         self.startAudio()
         self.startVideo()
@@ -68,13 +68,13 @@ class DiscoMachine:
     def endDiscoSession(self):    
         if(self.state != disco.State.PLAYING):
             return
-        self.state = disco.State.CLEARING
+        self.setState(disco.State.CLEARING)
         self.ball.stop()
         self.stopAudio()
         self.stopVideo()
 
     def startLooking(self):
-        self.state = disco.State.LOOKING
+        self.setState(disco.State.LOOKING)
 
     def waitForClear(self):
         if(self.state != disco.State.CLEARING):
@@ -84,6 +84,10 @@ class DiscoMachine:
     def shutdown(self):
         self.ball.shutdown()
     
+    def setState(self,newState):
+        print(f'switching from{self.state} to {newState}')
+        self.state = newState
+
     def processEvent(self,event):
         if (event == disco.Events.PersonApproaching):
             self.foundSomeone()
@@ -91,7 +95,7 @@ class DiscoMachine:
             self.endDiscoSession()
         elif (event == disco.Events.RemoteStart):
             self.foundSomeone()
-        elif (event == disco.Events.RemoteEnd):
+        elif (event == disco.Events.RemoteStop):
             self.endDiscoSession()
 
     def pump(self):
