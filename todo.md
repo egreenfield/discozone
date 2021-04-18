@@ -1,5 +1,9 @@
 
 Tasks:
-* Start up HTTP Servier
-* add support to stop audio remotely
-* make video processing background based
+* upload videos to S3 bucket
+* add peer communication
+* send sms notifications
+* disco count
+* add better person detection
+
+
