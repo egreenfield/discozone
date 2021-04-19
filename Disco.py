@@ -1,7 +1,11 @@
 import json
 import os
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+class Mode(Enum):
+    Leader = 1
+    Follower = 2
 
 class State(Enum):
     LOOKING = 1
@@ -20,6 +24,8 @@ class Features:
     music:bool = True
     video:bool = True    
     videoStorage:str = None
+    # followers:list = field(default_factory=list)
+    # leader:str = None
 
 
     @classmethod

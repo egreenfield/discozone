@@ -2,6 +2,8 @@ import subprocess
 import threading
 import time
 from disco import Events
+import devices
+from enum import Enum
 
 def playSongAndWait(discoMachine):
     audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
@@ -31,10 +33,21 @@ class PlaybackThread (threading.Thread):
     def abort(self):
         self._abort = True
 
-class Tapedeck:
-    def __init__(self,machine):
+class TapedeckCommand(Enum):
+    START = "Tapedeck:start"
+    STOP = "Tapedeck:stop"
+
+class Tapedeck(devices.Device):
+    def __init__(self,mgr,machine):
+        devices.Device.__init__(self,mgr)
         self.machine = machine
         self.thread = None
+
+    def onCommand(self,cmd,data = None):
+        if(cmd == TapedeckCommand.START):
+            self.start()
+        elif(cmd == TapedeckCommand.STOP):
+            self.stop()
 
     def start(self):
         if(self.thread):

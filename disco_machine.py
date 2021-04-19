@@ -4,10 +4,10 @@ from threading import Thread
 from collections import deque
 import threading
 
-from tapedeck import Tapedeck
 import disco
-from disco_ball import DiscoBall
-from video_recorder import VideoRecorder
+from tapedeck import Tapedeck, TapedeckCommand
+from disco_ball import DiscoBall, DiscoBallCommand
+from video_recorder import VideoRecorder, VideoRecorderCommand
 
 import logging
 log = logging.getLogger(__name__)
@@ -20,6 +20,7 @@ class DiscoMachine:
     events = deque()
     newEvents = deque()
     eventCondition = threading.Condition(threading.RLock())
+    mode:disco.Mode = disco.Mode.Leader
 
     tapedeck:Tapedeck = None
     ball:DiscoBall = None
@@ -27,9 +28,9 @@ class DiscoMachine:
     
     def __init__(self,features):
         self.features = features
-        self.tapedeck = Tapedeck(self)
-        self.ball = DiscoBall()
-        self.recorder = VideoRecorder(features.videoStorage)
+        self.tapedeck = Tapedeck(None,self)
+        self.ball = DiscoBall(None)
+        self.recorder = VideoRecorder(None,features.videoStorage)
 
     def setup(self):
         self.ball.init()
@@ -39,31 +40,37 @@ class DiscoMachine:
     def startVideo(self):
         if(self.features.video == False):
             return
-        self.recorder.start()
+        self.recorder.onCommand(VideoRecorderCommand.START)
 
     def stopVideo(self):
         if(self.features.video == False):
             return
-        self.recorder.stop()
+        self.recorder.onCommand(VideoRecorderCommand.STOP)
 
     def startAudio(self):
         if(self.features.music == False):
             return
-        self.tapedeck.start()
+        self.tapedeck.onCommand(TapedeckCommand.START)
     
     def stopAudio(self):
         if(self.features.music == False):
             return
-        self.tapedeck.stop()
+        self.tapedeck.onCommand(TapedeckCommand.STOP)
 
     def foundSomeone(self):
         if(self.state != disco.State.LOOKING):
             return
         self.startDiscoSession()
 
+    def remoteStart(self):
+        if(self.state != disco.State.LOOKING):
+            return
+        self.startDiscoSession()
+
+
     def startDiscoSession(self):
         self.setState(disco.State.PLAYING)
-        self.ball.spin()
+        self.ball.onCommand(DiscoBallCommand.SPIN)
         self.startAudio()
         self.startVideo()
 
@@ -71,7 +78,7 @@ class DiscoMachine:
         if(self.state != disco.State.PLAYING):
             return
         self.setState(disco.State.CLEARING)
-        self.ball.stop()
+        self.ball.onCommand(DiscoBallCommand.STOP)
         self.stopAudio()
         self.stopVideo()
 

@@ -3,6 +3,8 @@ import datetime
 import os
 from collections import deque
 import threading
+import devices
+from enum import Enum
 
 import logging
 log = logging.getLogger(__name__)
@@ -43,14 +45,24 @@ class PackagerThread (threading.Thread):
             self.videos.append(videoName)
             self.lock.notify()
 
+class VideoRecorderCommand(Enum):
+    START = "Videorecorder:start"
+    STOP = "Videorecorder:stop"
 
-class VideoRecorder:
+class VideoRecorder(devices.Device):
     currentVideoName:str = None
     videoProcess:subprocess.Popen = None
 
-    def __init__(self,destination):
+    def __init__(self,mgr,destination):
+        devices.Device.__init__(self,mgr)
         self.packager = PackagerThread(destination)
         self.packager.start()
+
+    def onCommand(self,cmd,data = None):
+        if(cmd == VideoRecorderCommand.START):
+            self.start()
+        elif(cmd == VideoRecorderCommand.STOP):
+            self.stop()
 
 
     def start(self):
