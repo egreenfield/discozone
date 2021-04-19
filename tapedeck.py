@@ -38,8 +38,8 @@ class TapedeckCommand(Enum):
     STOP = "Tapedeck:stop"
 
 class Tapedeck(devices.Device):
-    def __init__(self,mgr,machine):
-        devices.Device.__init__(self,mgr)
+    def __init__(self,machine):
+        devices.Device.__init__(self)
         self.machine = machine
         self.thread = None
 

@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from threading import Thread
 import disco
 import RPi.GPIO as GPIO
+import devices
 import time
+from tapedeck import Tapedeck
 from disco_machine import DiscoMachine
 from sonar import Sonar
 from webservice import RestService
@@ -41,7 +43,10 @@ running = True
 def setup(appState):
     features = disco.Features.load('config.json')
 
-    appState.machine = DiscoMachine(features)
+    deviceMgr = devices.DeviceManager()
+    appState.machine = DiscoMachine(features,deviceMgr)    
+    deviceMgr.addDevice("audio",Tapedeck(appState.machine))
+
     appState.machine.setup()
     appState.sonar = Sonar()
     appState.sonar.setup()

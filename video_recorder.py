@@ -53,8 +53,8 @@ class VideoRecorder(devices.Device):
     currentVideoName:str = None
     videoProcess:subprocess.Popen = None
 
-    def __init__(self,mgr,destination):
-        devices.Device.__init__(self,mgr)
+    def __init__(self,destination):
+        devices.Device.__init__(self)
         self.packager = PackagerThread(destination)
         self.packager.start()
 
