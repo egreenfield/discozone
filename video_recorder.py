@@ -23,7 +23,6 @@ class PackagerThread (threading.Thread):
             videoName = None
             with self.lock:
                 while not len(self.videos):
-                    log.debug(f'waiting to package')
                     self.lock.wait()
                 videoName = self.videos.popleft()
                 log.debug(f'packaging {videoName}')

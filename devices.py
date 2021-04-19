@@ -48,7 +48,13 @@ class DeviceManager:
         for aDevice in devices:
             aDevice.onCommand(cmd,data)
 
-    def shutdown(self):
+    def initDevices(self):
+        for aName in self.deviceMap:
+            devices = self.deviceMap[aName]
+            for aDevice in devices:
+                aDevice.init()
+
+    def shutdownDevices(self):
         for aName in self.deviceMap:
             devices = self.deviceMap[aName]
             for aDevice in devices:

@@ -6,8 +6,8 @@ import threading
 
 import disco
 from tapedeck import TapedeckCommand
-from disco_ball import DiscoBall, DiscoBallCommand
-from video_recorder import VideoRecorder, VideoRecorderCommand
+from disco_ball import DiscoBallCommand
+from video_recorder import VideoRecorderCommand
 
 import logging
 log = logging.getLogger(__name__)
@@ -22,31 +22,24 @@ class DiscoMachine:
     eventCondition = threading.Condition(threading.RLock())
     mode:disco.Mode = disco.Mode.Leader
 
-    ball:DiscoBall = None
-    recorder:VideoRecorder = None
     
     def __init__(self,features,deviceMgr):
         self.features = features
-        self.ball = DiscoBall()
-        self.recorder = VideoRecorder(features.videoStorage)
         self.deviceMgr = deviceMgr 
 
     def setup(self):
-        self.ball.init()
-
+        None
 
 
     def startVideo(self):
         if(self.features.video == False):
             return
         self.deviceMgr.sendCommand("video",VideoRecorderCommand.START)
-        self.recorder.onCommand(VideoRecorderCommand.START)
 
     def stopVideo(self):
         if(self.features.video == False):
             return
         self.deviceMgr.sendCommand("video",VideoRecorderCommand.STOP)
-        self.recorder.onCommand(VideoRecorderCommand.STOP)
 
     def startAudio(self):
         if(self.features.music == False):
@@ -72,7 +65,6 @@ class DiscoMachine:
     def startDiscoSession(self):
         self.setState(disco.State.PLAYING)
         self.deviceMgr.sendCommand("ball",DiscoBallCommand.SPIN)
-        self.ball.onCommand(DiscoBallCommand.SPIN)
         self.startAudio()
         self.startVideo()
 
@@ -81,7 +73,6 @@ class DiscoMachine:
             return
         self.setState(disco.State.CLEARING)
         self.deviceMgr.sendCommand("ball",DiscoBallCommand.STOP)
-        self.ball.onCommand(DiscoBallCommand.STOP)
         self.stopAudio()
         self.stopVideo()
 
@@ -94,7 +85,7 @@ class DiscoMachine:
         self.startLooking()
 
     def shutdown(self):
-        self.ball.shutdown()
+        None
     
     def setState(self,newState):
         log.debug(f'switching from {self.state} to {newState}')

@@ -6,7 +6,11 @@ import disco
 import RPi.GPIO as GPIO
 import devices
 import time
+
 from tapedeck import Tapedeck
+from video_recorder import VideoRecorder
+from disco_ball import DiscoBall
+
 from disco_machine import DiscoMachine
 from sonar import Sonar
 from webservice import RestService
@@ -24,6 +28,7 @@ DISTANCE_IN_CM = 60
 class AppState:
     machine: DiscoMachine = None
     sonar: Sonar = None
+    deviceMgr: devices.DeviceManager = None
 
 def findSomeone(appState):
     distance = appState.sonar.get() # get distance
@@ -43,9 +48,13 @@ running = True
 def setup(appState):
     features = disco.Features.load('config.json')
 
-    deviceMgr = devices.DeviceManager()
-    appState.machine = DiscoMachine(features,deviceMgr)    
-    deviceMgr.addDevice("audio",Tapedeck(appState.machine))
+    appState.deviceMgr = devices.DeviceManager()
+    appState.machine = DiscoMachine(features,appState.deviceMgr)    
+    appState.deviceMgr.addDevice("audio",Tapedeck(appState.machine))
+    appState.deviceMgr.addDevice("video",VideoRecorder(features.videoStorage))
+    appState.deviceMgr.addDevice("ball",DiscoBall())
+
+    appState.deviceMgr.initDevices()
 
     appState.machine.setup()
     appState.sonar = Sonar()
@@ -64,7 +73,8 @@ def runSonar(appState):
         time.sleep(.2)        
 
 def destroy(appState):
-    appState.machine.shutdown()
+    appState.deviceMgr.shutdownDevices()
+    appState.machine.shutdown()    
     GPIO.cleanup()
 
 appState = AppState()
