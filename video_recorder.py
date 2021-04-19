@@ -17,7 +17,6 @@ class PackagerThread (threading.Thread):
         threading.Thread.__init__(self,daemon=True)
         self.fileStorage = destination
 
-
     def run(self):
         while(True):
             videoName = None
@@ -51,10 +50,17 @@ class VideoRecorderCommand(Enum):
 class VideoRecorder(devices.Device):
     currentVideoName:str = None
     videoProcess:subprocess.Popen = None
+    remoteStorage:str = None
 
-    def __init__(self,destination):
+    
+    def __init__(self):
         devices.Device.__init__(self)
-        self.packager = PackagerThread(destination)
+
+    def setConfig(self,config):
+        self.remoteStorage = config['remoteStorage']
+
+    def init(self):
+        self.packager = PackagerThread(self.remoteStorage)
         self.packager.start()
 
     def onCommand(self,cmd,data = None):

@@ -53,13 +53,13 @@ deviceMap = {
 }
 
 def loadDevicesFromConfigData(config,deviceMgr):
-    deviceConfig = config.devices
-    localConfig: list = deviceConfig['local']
-    for aDevice in localConfig:
+    deviceConfig = config.deviceConfig
+    for aDevice in deviceConfig:
         typeName = aDevice['type']
         device = deviceMap[typeName]()
+        if('config' in aDevice):
+            device.setConfig(aDevice['config'])
         deviceMgr.addDevice(typeName,device)
-
 
 def setup(appState):
     config = Config.load('config.json')
@@ -68,9 +68,7 @@ def setup(appState):
     appState.machine = DiscoMachine(config,appState.deviceMgr)    
     appState.deviceMgr.setEventHandler(lambda device, event, data : appState.machine.addEvent(event))
 
-    appState.deviceMgr.addDevice("audio",Tapedeck())
-    appState.deviceMgr.addDevice("video",VideoRecorder(config.videoStorage))
-    appState.deviceMgr.addDevice("ball",DiscoBall())
+    loadDevicesFromConfigData(config,appState.deviceMgr)
     appState.deviceMgr.initDevices()
 
     appState.machine.setup()

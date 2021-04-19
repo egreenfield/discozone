@@ -15,6 +15,10 @@ class Device:
         None
     def raiseEvent(self,id,data = None):
         self.mgr.raiseEvent(self,id,data)        
+    
+    def setConfig(self,config):
+        None
+
 
 class DeviceManager:
     deviceMap: dict
