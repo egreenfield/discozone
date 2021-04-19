@@ -25,6 +25,7 @@ import os
 @dataclass
 class AppState:
     machine: DiscoMachine = None
+    webDevice: devices.Device = None
     deviceMgr: devices.DeviceManager = None
 
 
@@ -60,6 +61,9 @@ def setup(appState):
 
     loadDevicesFromConfigData(config,appState.deviceMgr)
 
+    appState.webDevice = devices.Device()
+    appState.deviceMgr.addDevice("api",appState.webDevice)
+
     appState.deviceMgr.initDevices()
 
     appState.machine.setup()
@@ -87,7 +91,7 @@ if __name__ == '__main__':     # Program entrance
         machineThread = Thread(target=runMachine,args=(appState,))
         machineThread.start()
 
-        service = RestService(appState.machine)
+        service = RestService(appState.machine,appState.webDevice)
         service.start()
             
     except KeyboardInterrupt:  # Press ctrl-c to end the program.

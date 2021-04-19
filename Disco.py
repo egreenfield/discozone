@@ -9,9 +9,7 @@ class State(Enum):
     CLEARING = 2
     PLAYING = 3
 
-class Events(Enum):
-    PersonApproaching = 1
-    SongStopped = 2
-    RemoteStart = 3 
-    RemoteStop = 4
+class Events:
+    RemoteStart = "DiscoEvent:RemoteStart" 
+    RemoteStop = "DiscoEvent:RemoteStop" 
 

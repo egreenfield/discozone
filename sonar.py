@@ -16,7 +16,7 @@ DEFAULT_DETECTION_DISTANCE_IN_CM = 60
 MINIMUM_DETECTION_DISTANCE = 5
 DEFAULT_DEBOUNCE_RATE = 3
 
-class SonarEvent(Enum):
+class SonarEvent:
     PERSON_APPROACHING = "Sonar:PersonApproaching"
     PERSON_LEFT = "Sonar:PersonLeft"
 

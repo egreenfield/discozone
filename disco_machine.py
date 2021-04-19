@@ -91,9 +91,7 @@ class DiscoMachine:
 
     def processEvent(self,event):
         log.debug(f'handling event {event}')
-        if (event == disco.Events.PersonApproaching):
-            self.foundSomeone()
-        elif (event == SonarEvent.PERSON_APPROACHING):
+        if (event == SonarEvent.PERSON_APPROACHING):
             self.foundSomeone()
         elif (event == TapedeckEvent.SONG_STOPPED):
             self.endDiscoSession()

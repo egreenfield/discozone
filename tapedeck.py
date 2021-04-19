@@ -10,7 +10,7 @@ class TapedeckCommand(Enum):
     START = "Tapedeck:start"
     STOP = "Tapedeck:stop"
 
-class TapedeckEvent(Enum):
+class TapedeckEvent:
     SONG_STOPPED = "Tapedeck:songStopped"
     STOP = "Tapedeck:stop"
 
