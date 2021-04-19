@@ -5,15 +5,12 @@ from collections import deque
 import threading
 
 import disco
-from tapedeck import TapedeckCommand
+from tapedeck import TapedeckCommand, TapedeckEvent
 from disco_ball import DiscoBallCommand
 from video_recorder import VideoRecorderCommand
 
 import logging
 log = logging.getLogger(__name__)
-
-# config
-DISTANCE_IN_CM = 60
 
 class DiscoMachine:
     state:disco.State = disco.State.CLEARING
@@ -23,8 +20,8 @@ class DiscoMachine:
     mode:disco.Mode = disco.Mode.Leader
 
     
-    def __init__(self,features,deviceMgr):
-        self.features = features
+    def __init__(self,config,deviceMgr):
+        self.config = config
         self.deviceMgr = deviceMgr 
 
     def setup(self):
@@ -32,22 +29,22 @@ class DiscoMachine:
 
 
     def startVideo(self):
-        if(self.features.video == False):
+        if(self.config.video == False):
             return
         self.deviceMgr.sendCommand("video",VideoRecorderCommand.START)
 
     def stopVideo(self):
-        if(self.features.video == False):
+        if(self.config.video == False):
             return
         self.deviceMgr.sendCommand("video",VideoRecorderCommand.STOP)
 
     def startAudio(self):
-        if(self.features.music == False):
+        if(self.config.music == False):
             return
         self.deviceMgr.sendCommand("audio",TapedeckCommand.START)
     
     def stopAudio(self):
-        if(self.features.music == False):
+        if(self.config.music == False):
             return
         self.deviceMgr.sendCommand("audio",TapedeckCommand.STOP)
 
@@ -95,7 +92,7 @@ class DiscoMachine:
         log.debug(f'handling event {event}')
         if (event == disco.Events.PersonApproaching):
             self.foundSomeone()
-        elif (event == disco.Events.SongStopped):
+        elif (event == TapedeckEvent.SONG_STOPPED):
             self.endDiscoSession()
         elif (event == disco.Events.RemoteStart):
             self.foundSomeone()

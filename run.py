@@ -10,6 +10,7 @@ import time
 from tapedeck import Tapedeck
 from video_recorder import VideoRecorder
 from disco_ball import DiscoBall
+from config import Config
 
 from disco_machine import DiscoMachine
 from sonar import Sonar
@@ -45,15 +46,31 @@ def findSomeone(appState):
 
 running = True
 
+deviceMap = {
+    "audio": Tapedeck,
+    "video": VideoRecorder,
+    "ball": DiscoBall,
+}
+
+def loadDevicesFromConfigData(config,deviceMgr):
+    deviceConfig = config.devices
+    localConfig: list = deviceConfig['local']
+    for aDevice in localConfig:
+        typeName = aDevice['type']
+        device = deviceMap[typeName]()
+        deviceMgr.addDevice(typeName,device)
+
+
 def setup(appState):
-    features = disco.Features.load('config.json')
+    config = Config.load('config.json')
 
     appState.deviceMgr = devices.DeviceManager()
-    appState.machine = DiscoMachine(features,appState.deviceMgr)    
-    appState.deviceMgr.addDevice("audio",Tapedeck(appState.machine))
-    appState.deviceMgr.addDevice("video",VideoRecorder(features.videoStorage))
-    appState.deviceMgr.addDevice("ball",DiscoBall())
+    appState.machine = DiscoMachine(config,appState.deviceMgr)    
+    appState.deviceMgr.setEventHandler(lambda device, event, data : appState.machine.addEvent(event))
 
+    appState.deviceMgr.addDevice("audio",Tapedeck())
+    appState.deviceMgr.addDevice("video",VideoRecorder(config.videoStorage))
+    appState.deviceMgr.addDevice("ball",DiscoBall())
     appState.deviceMgr.initDevices()
 
     appState.machine.setup()

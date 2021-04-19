@@ -5,18 +5,22 @@ from disco import Events
 import devices
 from enum import Enum
 
-def playSongAndWait(discoMachine):
-    audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
-    result = audioProcess.wait()
-    discoMachine.addEvent(Events.SongStopped)
+
+class TapedeckCommand(Enum):
+    START = "Tapedeck:start"
+    STOP = "Tapedeck:stop"
+
+class TapedeckEvent(Enum):
+    SONG_STOPPED = "Tapedeck:songStopped"
+    STOP = "Tapedeck:stop"
 
 class PlaybackThread (threading.Thread):
     
     _abort = False
     
-    def __init__(self,machine):
+    def __init__(self,tapedeck):
         threading.Thread.__init__(self)
-        self.machine = machine
+        self.tapedeck = tapedeck
 
     def run(self):
         audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
@@ -25,7 +29,7 @@ class PlaybackThread (threading.Thread):
                 audioProcess.terminate()
                 break
             elif (audioProcess.poll() != None):
-                self.machine.addEvent(Events.SongStopped)
+                self.tapedeck.raiseEvent(TapedeckEvent.SONG_STOPPED)
                 break
             else:
                 time.sleep(.2)
@@ -33,14 +37,10 @@ class PlaybackThread (threading.Thread):
     def abort(self):
         self._abort = True
 
-class TapedeckCommand(Enum):
-    START = "Tapedeck:start"
-    STOP = "Tapedeck:stop"
 
 class Tapedeck(devices.Device):
-    def __init__(self,machine):
+    def __init__(self):
         devices.Device.__init__(self)
-        self.machine = machine
         self.thread = None
 
     def onCommand(self,cmd,data = None):
@@ -52,7 +52,7 @@ class Tapedeck(devices.Device):
     def start(self):
         if(self.thread):
             self.thread.abort()
-        self.thread = PlaybackThread(self.machine)
+        self.thread = PlaybackThread(self)
         self.thread.start()
 
     def stop(self):

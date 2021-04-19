@@ -11,13 +11,14 @@ class Device:
     def shutdown(self):
         None
 
-    def onCommand(id,data = None):
+    def onCommand(self,id,data = None):
         None
-    def raiseEvent(id,data):
-        self.mgr.raiseEvent()        
+    def raiseEvent(self,id,data = None):
+        self.mgr.raiseEvent(self,id,data)        
 
 class DeviceManager:
     deviceMap: dict
+    eventHandler  = None
 
     def __init__(self):
         self.deviceMap = {}
@@ -47,6 +48,12 @@ class DeviceManager:
         devices = self.getDevices(name)
         for aDevice in devices:
             aDevice.onCommand(cmd,data)
+
+    def setEventHandler(self,eventHandler):
+        self.eventHandler = eventHandler
+
+    def raiseEvent(self,device,id,data = None):
+        self.eventHandler and self.eventHandler(device,id,data)
 
     def initDevices(self):
         for aName in self.deviceMap:
