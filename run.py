@@ -22,21 +22,10 @@ import os
 # 
 # Model and State
 #
-
-DISTANCE_IN_CM = 60
-
 @dataclass
 class AppState:
     machine: DiscoMachine = None
-    sonar: Sonar = None
     deviceMgr: devices.DeviceManager = None
-
-def findSomeone(appState):
-    distance = appState.sonar.get() # get distance
-    # if(appState.machine.state == disco.State.LOOKING):
-    #     print(f'LOOKING: sonar returned distance of {distance}')
-    if (distance > 5 and distance < DISTANCE_IN_CM):
-        appState.machine.addEvent(disco.Events.PersonApproaching)
 
 
 ################################################################################################
@@ -50,6 +39,7 @@ deviceMap = {
     "audio": Tapedeck,
     "video": VideoRecorder,
     "ball": DiscoBall,
+    "sonar": Sonar,
 }
 
 def loadDevicesFromConfigData(config,deviceMgr):
@@ -69,23 +59,17 @@ def setup(appState):
     appState.deviceMgr.setEventHandler(lambda device, event, data : appState.machine.addEvent(event))
 
     loadDevicesFromConfigData(config,appState.deviceMgr)
+
     appState.deviceMgr.initDevices()
 
     appState.machine.setup()
-    appState.sonar = Sonar()
-    appState.sonar.setup()
 
 
 def runMachine(appState):
     while(running):
         appState.machine.pump()
-        # findSomeone(appState);
         time.sleep(.2)        
 
-def runSonar(appState):
-    while(running):
-        findSomeone(appState);
-        time.sleep(.2)        
 
 def destroy(appState):
     appState.deviceMgr.shutdownDevices()
@@ -99,8 +83,6 @@ if __name__ == '__main__':     # Program entrance
     logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
     setup(appState)
     try:
-        sonarThread = Thread(target=runSonar,args=(appState,))
-        sonarThread.start()
 
         machineThread = Thread(target=runMachine,args=(appState,))
         machineThread.start()

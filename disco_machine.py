@@ -8,6 +8,7 @@ import disco
 from tapedeck import TapedeckCommand, TapedeckEvent
 from disco_ball import DiscoBallCommand
 from video_recorder import VideoRecorderCommand
+from sonar import SonarEvent
 
 import logging
 log = logging.getLogger(__name__)
@@ -91,6 +92,8 @@ class DiscoMachine:
     def processEvent(self,event):
         log.debug(f'handling event {event}')
         if (event == disco.Events.PersonApproaching):
+            self.foundSomeone()
+        elif (event == SonarEvent.PERSON_APPROACHING):
             self.foundSomeone()
         elif (event == TapedeckEvent.SONG_STOPPED):
             self.endDiscoSession()
