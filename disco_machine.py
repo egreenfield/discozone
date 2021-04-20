@@ -54,6 +54,13 @@ class DiscoMachine:
             return
         self.startDiscoSession()
 
+    def personLeft(self):
+        if(self.state != disco.State.PLAYING):
+            return
+        if(self.config.silentWhenAlone == False):
+            return
+        self.endDiscoSession()
+
     def remoteStart(self):
         if(self.state != disco.State.LOOKING):
             return
@@ -93,6 +100,8 @@ class DiscoMachine:
         log.debug(f'handling event {event}')
         if (event == SonarEvent.PERSON_APPROACHING):
             self.foundSomeone()
+        elif (event == SonarEvent.PERSON_LEFT):
+            self.personLeft()
         elif (event == TapedeckEvent.SONG_STOPPED):
             self.endDiscoSession()
         elif (event == disco.Events.RemoteStart):

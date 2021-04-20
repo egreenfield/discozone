@@ -1,9 +1,12 @@
 from uuid import uuid4
+from  concurrent.futures import ThreadPoolExecutor
+import requests
 
 class Device:
     id = None
     def __init__(self):
         self.id = str(uuid4())
+        self.className = "generic"
         None
 
     def setMgr(self,mgr):
@@ -12,20 +15,31 @@ class Device:
     def setId(self,id):
         self.id = id
 
+    def setClass(self,className):
+        self.className = className
+
     def init(self):
         None
 
     def shutdown(self):
         None
 
-    def onCommand(self,id,data = None):
+    def onCommand(self,cmd,data = None):
         None
-    def raiseEvent(self,id,data = None):
-        self.mgr.raiseEvent(self,id,data)        
+    def raiseEvent(self,event,data = None):
+        self.mgr.raiseEvent(self,event,data)        
     
     def setConfig(self,config):
         None
 
+
+class Remote(Device):
+
+    def setConfig(self,config):
+        self.location = config['location']
+
+    def onCommand(self,cmd,data = None):
+        self.mgr.request(f'http://{self.location}:8000/command/{self.className}/{self.id}/{cmd}')
 
 class DeviceManager:
     deviceMap: dict
@@ -33,9 +47,21 @@ class DeviceManager:
 
     def __init__(self):
         self.deviceMap = {}
+        self.remotePool = ThreadPoolExecutor(max_workers=10)
     
-    def addDevice(self,deviceClass,device):
+    @staticmethod
+    def handleRequest(url):
+        print(f'fetching {url}')
+        requests.get(url)
+
+    def request(self,url):
+        self.remotePool.submit(DeviceManager.handleRequest,url)
+    
+    
+    def addDevice(self,device):
         devices = None
+        deviceClass = device.className
+
         if (deviceClass in self.deviceMap):
             devices = self.deviceMap[deviceClass]
         else:

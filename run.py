@@ -7,13 +7,9 @@ import RPi.GPIO as GPIO
 import devices
 import time
 
-from tapedeck import Tapedeck
-from video_recorder import VideoRecorder
-from disco_ball import DiscoBall
 from config import Config
 
 from disco_machine import DiscoMachine
-from sonar import Sonar
 from webservice import RestService
 import logging
 import os
@@ -35,26 +31,6 @@ class AppState:
 
 running = True
 
-deviceMap = {
-    "audio": Tapedeck,
-    "video": VideoRecorder,
-    "ball": DiscoBall,
-    "sonar": Sonar,
-}
-
-def loadDevicesFromConfigData(config,deviceMgr):
-    deviceConfig = config.deviceConfig
-    for aDevice in deviceConfig:
-        className = typeName = aDevice['class']
-        device = deviceMap[typeName]()
-        if ('id' in aDevice):
-            device.setId(aDevice['id'])
-        if('class' in aDevice):
-            className = aDevice['class']
-        if('config' in aDevice):
-            device.setConfig(aDevice['config'])
-        deviceMgr.addDevice(className,device)
-
 def setup(appState):
     config = Config.load('config.json')
 
@@ -62,8 +38,7 @@ def setup(appState):
     appState.machine = DiscoMachine(config,appState.deviceMgr)    
     appState.deviceMgr.setEventHandler(lambda device, event, data : appState.machine.addEvent(event))
 
-    loadDevicesFromConfigData(config,appState.deviceMgr)
-
+    Config.loadDevicesFromConfigData(config,appState.deviceMgr)
 
     appState.deviceMgr.initDevices()
 

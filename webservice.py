@@ -48,7 +48,8 @@ class RestService:
         self.app.add_route('/stop', RemoteEvent(disco.Events.RemoteStop,machine))
 
         webDevice = devices.Device()
-        deviceMgr.addDevice("api",webDevice)
+        webDevice.setClass("api")
+        deviceMgr.addDevice(webDevice)
         self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
 
         self.app.add_route('/command/{deviceClass}/{deviceId}/{commandName}', WebCommandHandler(deviceMgr))
