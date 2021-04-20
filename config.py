@@ -25,7 +25,15 @@ class Config:
     videoStorage:str = None
     deviceConfig:dict = field(default_factory=dict)
     # followers:list = field(default_factory=list)
-    # leader:str = None
+    leader:str = None
+
+
+
+    # def loadConfig(self,name,data,configName = None):
+    #     srcName = configName or name
+    #     print(f'lc {name} {configName} {srcName}')
+    #     if name in data:
+    #         setattr(self,name,data[srcName])
 
 
     @classmethod
@@ -46,6 +54,9 @@ class Config:
                     f.silentWhenAlone = configData['silentWhenAlone']
                 if 'devices' in configData:
                     f.deviceConfig = configData['devices']
+                if 'leader' in configData:
+                    f.leader = configData['leader']
+                
         return f
 
 
