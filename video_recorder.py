@@ -12,9 +12,11 @@ class PackagerThread (threading.Thread):
     videos = deque()
     lock = threading.Condition()
 
-    def __init__(self,destination):
+    def __init__(self,recorder):
         threading.Thread.__init__(self,daemon=True)
-        self.fileStorage = destination
+        self.recorder = recorder
+        self.completedVideos = deque()
+
 
     def run(self):
         while(True):
@@ -23,21 +25,34 @@ class PackagerThread (threading.Thread):
                 while not len(self.videos):
                     self.lock.wait()
                 videoName = self.videos.popleft()
-                log.debug(f'packaging {videoName}')
-                
+                log.debug(f'packaging {videoName}')                
+            self._package(videoName)
 
-            h264Name = f'{videoName}.h264'
-            mp4Name =  f'{videoName}.mp4'
-            boxProc = subprocess.Popen(['MP4Box', '-add', h264Name, mp4Name])
-            boxProc.wait()
-            if os.path.exists(h264Name):
-                os.remove(h264Name)             
-            if(self.fileStorage):
-                scpProc = subprocess.Popen(['scp', mp4Name, self.fileStorage])
-                scpProc.wait()
-            
+    def _package(self,videoName):
+        videoRemoved = False
+        videoPath = os.path.join(self.recorder.localStorage,videoName)
+        h264Path = f'{videoPath}.h264'
+        mp4Path =  f'{videoPath}.mp4'
+        boxProc = subprocess.Popen(['MP4Box', '-add', h264Path, mp4Path])
+        boxProc.wait()
+        if os.path.exists(h264Path):
+            os.remove(h264Path)             
+        if (self.recorder.remoteStorage):
+            scpProc = subprocess.Popen(['scp', mp4Path, self.recorder.remoteStorage])
+            result = scpProc.wait()
+            print(f'upload result is {result}')
+            if(result == 0 and self.recorder.deleteOnUpload):
+                os.remove(mp4Name)             
+                videoRemoved = True
+        if(videoRemoved):
+            return
+        self.completedVideos.append(mp4Path)
+        if(len(self.completedVideos) > self.recorder.maxVideoCount):
+            deadVideo = self.completedVideos.popleft()
+            os.remove(deadVideo)
+
     
-    def addVideo(self,videoName):
+    def package(self,videoName):
         with(self.lock):
             self.videos.append(videoName)
             self.lock.notify()
@@ -50,7 +65,9 @@ class VideoRecorder(devices.Device):
     currentVideoName:str = None
     videoProcess:subprocess.Popen = None
     remoteStorage:str = None
-
+    deleteOnUpload:bool = True
+    maxVideoCount:int = 20
+    localStorage:str = ""
 
     def __init__(self):
         devices.Device.__init__(self)
@@ -59,9 +76,15 @@ class VideoRecorder(devices.Device):
         devices.Device.setConfig(self,config)
         if('remoteStorage' in config):
             self.remoteStorage = config['remoteStorage']
+        if('localStorage' in config):
+            self.localStorage = config['localStorage']
+        if('deleteOnUpload' in config):
+            self.deleteOnUpload = config['deleteOnUpload']
+        if('maxVideoCount' in config):
+            self.maxVideoCount = config['maxVideoCount']
 
     def init(self):
-        self.packager = PackagerThread(self.remoteStorage)
+        self.packager = PackagerThread(self)
         self.packager.start()
 
     def onCommand(self,cmd,data = None):
@@ -75,11 +98,11 @@ class VideoRecorder(devices.Device):
         now = datetime.datetime.now()
         self.currentVideoName = f'{now.year}_{now.month}_{now.day}_{now.hour}_{now.minute}_{now.second}'
         print(f'video name is {self.currentVideoName}')
-        self.videoProcess = subprocess.Popen(['raspivid', '-o', f'{self.currentVideoName}.h264', '-t', '30000'])
+        self.videoProcess = subprocess.Popen(['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000'])
 
     def stop(self):
         if(self.videoProcess != None):
             self.videoProcess.terminate()
             self.videoProcess = None
-            self.packager.addVideo(self.currentVideoName)
+            self.packager.package(self.currentVideoName)
             self.currentVideoName = None
