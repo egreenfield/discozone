@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 import devices
-from enum import Enum
 
 MOTOR_SPEED = .6
 
@@ -15,7 +14,7 @@ enablePin = 15
 def mapNUM(value,fromLow,fromHigh,toLow,toHigh):
     return (toHigh-toLow)*(value-fromLow) / (fromHigh-fromLow) + toLow
 
-class DiscoBallCommand(Enum):
+class DiscoBallCommand:
     SPIN = "Ball:spin"
     STOP = "Ball:stop"
 

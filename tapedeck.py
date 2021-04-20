@@ -3,10 +3,9 @@ import threading
 import time
 from disco import Events
 import devices
-from enum import Enum
 
 
-class TapedeckCommand(Enum):
+class TapedeckCommand:
     START = "Tapedeck:start"
     STOP = "Tapedeck:stop"
 

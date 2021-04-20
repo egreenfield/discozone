@@ -4,7 +4,6 @@ import os
 from collections import deque
 import threading
 import devices
-from enum import Enum
 
 import logging
 log = logging.getLogger(__name__)
@@ -43,7 +42,7 @@ class PackagerThread (threading.Thread):
             self.videos.append(videoName)
             self.lock.notify()
 
-class VideoRecorderCommand(Enum):
+class VideoRecorderCommand:
     START = "Videorecorder:start"
     STOP = "Videorecorder:stop"
 
@@ -52,12 +51,14 @@ class VideoRecorder(devices.Device):
     videoProcess:subprocess.Popen = None
     remoteStorage:str = None
 
-    
+
     def __init__(self):
         devices.Device.__init__(self)
 
     def setConfig(self,config):
-        self.remoteStorage = config['remoteStorage']
+        devices.Device.setConfig(self,config)
+        if('remoteStorage' in config):
+            self.remoteStorage = config['remoteStorage']
 
     def init(self):
         self.packager = PackagerThread(self.remoteStorage)

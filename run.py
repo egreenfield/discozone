@@ -25,7 +25,6 @@ import os
 @dataclass
 class AppState:
     machine: DiscoMachine = None
-    webDevice: devices.Device = None
     deviceMgr: devices.DeviceManager = None
 
 
@@ -46,11 +45,15 @@ deviceMap = {
 def loadDevicesFromConfigData(config,deviceMgr):
     deviceConfig = config.deviceConfig
     for aDevice in deviceConfig:
-        typeName = aDevice['type']
+        className = typeName = aDevice['class']
         device = deviceMap[typeName]()
+        if ('id' in aDevice):
+            device.setId(aDevice['id'])
+        if('class' in aDevice):
+            className = aDevice['class']
         if('config' in aDevice):
             device.setConfig(aDevice['config'])
-        deviceMgr.addDevice(typeName,device)
+        deviceMgr.addDevice(className,device)
 
 def setup(appState):
     config = Config.load('config.json')
@@ -61,8 +64,6 @@ def setup(appState):
 
     loadDevicesFromConfigData(config,appState.deviceMgr)
 
-    appState.webDevice = devices.Device()
-    appState.deviceMgr.addDevice("api",appState.webDevice)
 
     appState.deviceMgr.initDevices()
 
@@ -91,7 +92,7 @@ if __name__ == '__main__':     # Program entrance
         machineThread = Thread(target=runMachine,args=(appState,))
         machineThread.start()
 
-        service = RestService(appState.machine,appState.webDevice)
+        service = RestService(appState.machine,appState.deviceMgr)
         service.start()
             
     except KeyboardInterrupt:  # Press ctrl-c to end the program.

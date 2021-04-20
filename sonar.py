@@ -31,6 +31,7 @@ class WatchingThread (threading.Thread):
     def __init__(self,device):
         threading.Thread.__init__(self,daemon=True)
         self.device = device
+        self.terminated = False
 
     def pulseIn(self,pin,level,timeOut): # obtain pulse time of a pin under timeOut
         t0 = time.time()
@@ -81,9 +82,9 @@ class WatchingThread (threading.Thread):
 
 
     def run(self):
-        while(True):
+        while not (self.terminated):
             self.checkForChange()
-            time.sleep(.2)            
+            time.sleep(.1)            
 
 
 
@@ -111,6 +112,7 @@ class Sonar(devices.Device):
         self.watcher.start()
 
     def setConfig(self,config):
+        Device.setConfig(self,config)
         if('detectionDistance' in config):
             self.detectionDistance = config['detectionDistance']
         if('minimumDistance' in config):
@@ -123,4 +125,7 @@ class Sonar(devices.Device):
             self.maxSensorRange = config['maxSensorRange']
         if('debounceRate' in config):
             self.debounceRate = config['debounceRate']
-
+    def shutdown(self):
+        self.watcher.terminated = True
+        self.watcher.join()
+        

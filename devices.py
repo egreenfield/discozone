@@ -1,9 +1,16 @@
+from uuid import uuid4
+
 class Device:
+    id = None
     def __init__(self):
+        self.id = str(uuid4())
         None
 
     def setMgr(self,mgr):
         self.mgr = mgr
+
+    def setId(self,id):
+        self.id = id
 
     def init(self):
         None
@@ -27,31 +34,37 @@ class DeviceManager:
     def __init__(self):
         self.deviceMap = {}
     
-    def addDevice(self,name,device):
+    def addDevice(self,deviceClass,device):
         devices = None
-        if (name in self.deviceMap):
-            devices = self.deviceMap[name]
+        if (deviceClass in self.deviceMap):
+            devices = self.deviceMap[deviceClass]
         else:
-            devices = self.deviceMap[name] = []
+            devices = self.deviceMap[deviceClass] = []
         devices.append(device)
         device.setMgr(self)
     
-    def getFirstDevice(self,name):
-        if (name in self.deviceMap):
-            namedDevices = self.deviceMap[name]
-            if len(namedDevices):
-                return namedDevices[0]
+    def getFirstDevice(self,deviceClass):
+        if (deviceClass in self.deviceMap):
+            devices = self.deviceMap[deviceClass]
+            if len(devices):
+                return devices[0]
         return None
 
-    def getDevices(self,name):
-        if (name in self.deviceMap):
-            return self.deviceMap[name]
+    def getDevices(self,deviceClass):
+        if (deviceClass in self.deviceMap):
+            return self.deviceMap[deviceClass]
         return []
 
-    def sendCommand(self,name,cmd,data = None):
-        devices = self.getDevices(name)
+    def execRemoteCommand(self, deviceClass, cmd, deviceId, data = None):
+        self.sendCommand(deviceClass,cmd,deviceId,data)
+
+    def sendCommand(self,deviceClass,cmd,deviceId = None, data = None):
+        #print(f'sending command {deviceClass} {deviceId} {cmd}')
+        devices = self.getDevices(deviceClass)
         for aDevice in devices:
-            aDevice.onCommand(cmd,data)
+            #print(f'examining {deviceClass} {aDevice.id}')
+            if(deviceId == None or deviceId == aDevice.id):
+                aDevice.onCommand(cmd,data)
 
     def setEventHandler(self,eventHandler):
         self.eventHandler = eventHandler
@@ -70,4 +83,5 @@ class DeviceManager:
             devices = self.deviceMap[aName]
             for aDevice in devices:
                 aDevice.shutdown()
+
 
