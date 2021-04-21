@@ -1,12 +1,8 @@
 from enum import Enum
 
-class Mode(Enum):
-    Leader = 1
-    Follower = 2
-
-class State(Enum):
-    LOOKING = 1
-    PLAYING = 3
+class State:
+    LOOKING = "DiscoState:Looking"
+    PLAYING = "DiscoState:Playing"
 
 class Events:
     RemoteStart = "DiscoEvent:RemoteStart" 

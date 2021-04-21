@@ -19,7 +19,6 @@ import os
 # 
 # Model and State
 #
-@dataclass
 class App:
     machine: DiscoMachine = None
     deviceMgr: devices.DeviceManager = None
