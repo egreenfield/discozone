@@ -1,13 +1,16 @@
 
 Tasks:
-* add remote device control
 * add remote sensor event response
 * send sms notifications
-* create and add ssh keys from cookie
 * look into Mosquito message broker http://mosquitto.org/documentation/
 * fix video upload to go somewhere accessible from phone
     * alternatively, add a website to make videos addressable
-* make sure all threads/devices are shut down before shutting down GPIO
 * disco count
 * work without internet
-
+* power from battery?
+* 3rd pi for window
+* signs + containers
+* auto-start on boot
+* web serving of videos
+* cap videos by size
+* generic state machine 

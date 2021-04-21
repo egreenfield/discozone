@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import devices
 
-MOTOR_SPEED = .6
+MOTOR_SPEED = 100
 
 
 # Pin Assignments
@@ -20,6 +20,10 @@ class DiscoBallCommand:
 
 class DiscoBall (devices.Device):
 
+    def __init__(self):
+        devices.Device.__init__(self)
+        self.power = MOTOR_SPEED
+
     def onCommand(self,cmd,data = None):
         if(cmd == DiscoBallCommand.SPIN):
             self.spin()
@@ -36,10 +40,15 @@ class DiscoBall (devices.Device):
         self.p.start(0)
 
     def spin(self):
-        self.motor(128 + 128 * MOTOR_SPEED)
+        self.motor(128 + 128 * self.power/100.0)
 
     def stop(self):
         self.motor(128)
+
+    def setConfig(self,config):
+        devices.Device.setConfig(self,config)
+        if('power' in config):
+            self.power = config['power']
 
     # motor function: determine the direction and speed of the motor according to the input ADC value input
     def motor(self,ADC):

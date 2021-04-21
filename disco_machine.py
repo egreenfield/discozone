@@ -76,18 +76,14 @@ class DiscoMachine:
     def endDiscoSession(self):    
         if(self.state != disco.State.PLAYING):
             return
-        self.setState(disco.State.CLEARING)
         self.deviceMgr.sendCommand("ball",DiscoBallCommand.STOP)
         self.stopAudio()
         self.stopVideo()
+        self.setState(disco.State.LOOKING)
 
     def startLooking(self):
         self.setState(disco.State.LOOKING)
 
-    def waitForClear(self):
-        if(self.state != disco.State.CLEARING):
-            return
-        self.startLooking()
 
     def shutdown(self):
         None
@@ -119,7 +115,6 @@ class DiscoMachine:
             self.processEvent(event)
         newEvents.clear()
 
-        self.waitForClear()
 
     def addEvent(self,event):
         with self.eventCondition:
