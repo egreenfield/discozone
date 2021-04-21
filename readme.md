@@ -1,6 +1,22 @@
 # setup
+### Step 1: update python
 
-### Step 1: install packages
+Not necessary, but makes life easy:
+
+`cd /usr/bin`
+
+`sudo rm python`
+
+`ln -s python3 python`
+
+### Step 2: install software
+
+`sudo apt-get install gpac` 
+(to install MP4Box)
+
+
+
+### Step 3: install packages
 
 * falcon
 
