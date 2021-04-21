@@ -6,6 +6,7 @@ import disco
 import RPi.GPIO as GPIO
 import devices
 import time
+from remote import Remote
 
 from config import Config
 
@@ -19,9 +20,10 @@ import os
 # Model and State
 #
 @dataclass
-class AppState:
+class App:
     machine: DiscoMachine = None
     deviceMgr: devices.DeviceManager = None
+    remote: Remote = None
     running:bool = True
     config:Config = None
 
@@ -31,50 +33,58 @@ class AppState:
 #
 
 
-def handleEvent(appState,device,event,data):
-    appState.machine.addEvent(event)
+    def handleEvent(self,device,event,data):
+        if (self.config.leader == None):
+            self.machine.addEvent(event)
+        else:
+            self.remote.request(f'http://{self.config.leader}:8000/event/{event}')
 
-def setup(appState):
-    appState.config = Config.load('config.json')
+    def setup(self):
+        self.config = Config.load('config.json')
 
-    appState.deviceMgr = devices.DeviceManager()
-    appState.deviceMgr.setEventHandler(lambda device, event, data : handleEvent(appState,device,event,data))
-    Config.loadDevicesFromConfigData(appState.config,appState.deviceMgr)
-    appState.deviceMgr.initDevices()
+        self.remote = Remote()
+        self.deviceMgr = devices.DeviceManager(self.remote)
+        self.deviceMgr.setEventHandler(lambda device, event, data : self.handleEvent(device,event,data))
+        Config.loadDevicesFromConfigData(self.config,self.deviceMgr)
+        self.deviceMgr.initDevices()
 
-    if(appState.config.leader == None):
-        appState.machine = DiscoMachine(appState.config,appState.deviceMgr)    
-        appState.machine.setup()
-
-
-def runMachine(appState):
-    while(appState.running):
-        appState.machine.pump()
-        time.sleep(.2)        
+        if(self.config.leader == None):
+            self.machine = DiscoMachine(self.config,self.deviceMgr)    
+            self.machine.setup()
 
 
-def destroy(appState):
-    appState.deviceMgr.shutdownDevices()
-    appState.machine.shutdown()    
-    GPIO.cleanup()
+    def runMachine(self):
+        while(self.running):
+            self.machine.pump()
+            time.sleep(.2)        
 
-appState = AppState()
+    def run(self):
+        if(self.config.leader == None):
+            machineThread = Thread(target=lambda : self.runMachine())
+            machineThread.start()
+
+        service = RestService(self.machine,self.deviceMgr)
+        service.start()
+
+
+
+    def destroy(self):
+        self.running = False        
+        self.deviceMgr.shutdownDevices()
+        self.machine.shutdown()    
+        GPIO.cleanup()
+
+app = App()
 
 if __name__ == '__main__':     # Program entrance
 
     logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
-    setup(appState)
+    app.setup()
     try:
 
-        if(appState.config.leader == None):
-            machineThread = Thread(target=runMachine,args=(appState,))
-            machineThread.start()
+        app.run()
 
-        service = RestService(appState.machine,appState.deviceMgr)
-        service.start()
-            
     except KeyboardInterrupt:  # Press ctrl-c to end the program.
         print("INTERRUPT")
-        appState.running = False        
-        destroy(appState)
+        app.destroy()
 

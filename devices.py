@@ -1,6 +1,4 @@
 from uuid import uuid4
-from  concurrent.futures import ThreadPoolExecutor
-import requests
 
 class Device:
     id = None
@@ -33,7 +31,7 @@ class Device:
         None
 
 
-class Remote(Device):
+class RemoteDevice(Device):
 
     def setConfig(self,config):
         self.location = config['location']
@@ -45,17 +43,13 @@ class DeviceManager:
     deviceMap: dict
     eventHandler  = None
 
-    def __init__(self):
+    def __init__(self,remote):
         self.deviceMap = {}
-        self.remotePool = ThreadPoolExecutor(max_workers=10)
+        self.remote = remote
     
-    @staticmethod
-    def handleRequest(url):
-        print(f'fetching {url}')
-        requests.get(url)
 
     def request(self,url):
-        self.remotePool.submit(DeviceManager.handleRequest,url)
+        self.remote.request(url)
     
     
     def addDevice(self,device):

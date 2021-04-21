@@ -6,7 +6,6 @@ class Mode(Enum):
 
 class State(Enum):
     LOOKING = 1
-    CLEARING = 2
     PLAYING = 3
 
 class Events:

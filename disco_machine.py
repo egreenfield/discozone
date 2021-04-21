@@ -14,7 +14,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class DiscoMachine:
-    state:disco.State = disco.State.CLEARING
+    state:disco.State = disco.State.LOOKING
     events = deque()
     newEvents = deque()
     eventCondition = threading.Condition(threading.RLock())
@@ -52,6 +52,7 @@ class DiscoMachine:
     def foundSomeone(self):
         if(self.state != disco.State.LOOKING):
             return
+        log.debug("found someone")
         self.startDiscoSession()
 
     def personLeft(self):
