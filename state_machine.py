@@ -46,7 +46,6 @@ class StateMachine:
     def processEvent(self,event):        
         log.debug(f'handling event {event}')
         targetState = None
-        print(f'state map is {self.transitions[self.state]}')
         try:
             targetState = self.transitions[self.state][event]
         except KeyError: 
