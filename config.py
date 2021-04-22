@@ -64,6 +64,8 @@ class Config:
     def loadDevicesFromConfigData(config,deviceMgr):
         deviceConfig = config.deviceConfig
         for aDevice in deviceConfig:
+            if ('enabled' in aDevice and aDevice['enabled'] == False):
+                continue
             typeName = aDevice['type']
             device = deviceMap[typeName]()
             if ('id' in aDevice):

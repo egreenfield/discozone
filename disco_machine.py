@@ -24,7 +24,7 @@ class DiscoMachine(StateMachine):
                     Events.RemoteStart: State.PLAYING
                 },
                 State.PLAYING: {
-                    SonarEvent.PERSON_LEFT: State.LOOKING,
+                    SonarEvent.PERSON_LEFT: lambda f,t : State.LOOKING if config.silentWhenAlone else None,
                     TapedeckEvent.SONG_STOPPED: State.LOOKING,
                     Events.RemoteStop: State.LOOKING,
                 }
@@ -36,15 +36,6 @@ class DiscoMachine(StateMachine):
                 }
             }
         )
-
-
-    def personLeft(self):
-        if(self.state != State.PLAYING):
-            return
-        if(self.config.silentWhenAlone == False):
-            return
-        self.endDiscoSession()
-
 
     def startDiscoSession(self):
         if(self.config.ball):

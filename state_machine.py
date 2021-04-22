@@ -56,8 +56,11 @@ class StateMachine:
                 targetState = self.transitions[''][event]
             except KeyError: 
                 pass
-        if(targetState != None):
-            self.setState(targetState)
+        if callable(targetState):
+            targetState = targetState(self.state, targetState)
+        if (targetState == None):
+            return
+        self.setState(targetState)
 
     def pump(self):
         with self.eventCondition:
