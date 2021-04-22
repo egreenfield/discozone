@@ -70,7 +70,8 @@ class App:
     def destroy(self):
         self.running = False        
         self.deviceMgr.shutdownDevices()
-        self.machine.shutdown()    
+        if (self.machine):
+            self.machine.shutdown()    
         GPIO.cleanup()
 
 app = App()

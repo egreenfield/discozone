@@ -57,9 +57,9 @@ class WatchingThread (threading.Thread):
     def checkForChange(self):
         distance = self.readSensor() # get distance
         #print(f'LOOKING: sonar returned distance of {distance}')
-        if (distance < self.device.minimumDistance):
+        if (distance < self.device.minimumDistance and distance > 0):
             return
-        if (distance < self.device.detectionDistance):
+        if (distance < self.device.detectionDistance and distance > 0):
             foundState = SonarState.ObjectDetected
         else:
             foundState = SonarState.Clear
@@ -71,12 +71,12 @@ class WatchingThread (threading.Thread):
             return
         if (foundState == SonarState.ObjectDetected):
             if(self.device.state == SonarState.Clear):
-                print(f'SONAR found object {distance}')
+                #print(f'SONAR found object {distance}')
                 self.device.state = SonarState.ObjectDetected
                 self.device.raiseEvent(SonarEvent.PERSON_APPROACHING)
         else:
             if(self.device.state == SonarState.ObjectDetected):
-                print(f'SONAR cleared object {distance}')
+                #print(f'SONAR cleared object {distance}')
                 self.device.state = SonarState.Clear
                 self.device.raiseEvent(SonarEvent.PERSON_LEFT)            
 
@@ -112,7 +112,7 @@ class Sonar(devices.Device):
         self.watcher.start()
 
     def setConfig(self,config):
-        Device.setConfig(self,config)
+        devices.Device.setConfig(self,config)
         if('detectionDistance' in config):
             self.detectionDistance = config['detectionDistance']
         if('minimumDistance' in config):
