@@ -12,8 +12,10 @@ from config import Config
 
 from disco_machine import DiscoMachine
 from webservice import RestService
-import logging
 import os
+
+import logging
+log = logging.getLogger(__name__)
 
 ################################################################################################
 # 
@@ -81,7 +83,7 @@ if __name__ == '__main__':     # Program entrance
     logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
     app.setup()
     try:
-
+        log.debug(f'Starting discozone, current directory is {os.getcwd()}')
         app.run()
 
     except KeyboardInterrupt:  # Press ctrl-c to end the program.

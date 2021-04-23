@@ -4,9 +4,11 @@ After=multi-user.target
  
 [Service]
 Type=simple
-WorkingDirectory=/home/pi/dev/USTest/
-ExecStart=/usr/bin/python /home/pi/dev/USTest/run.py
+WorkingDirectory=/home/pi/dev/discozone
+ExecStart=/usr/bin/python /home/pi/dev/discozone/app.py
 Restart=on-abort
+User=pi
+Group=pi
  
 [Install]
 WantedBy=multi-user.target
