@@ -2,7 +2,12 @@ import falcon
 import disco
 import devices
 from wsgiref.simple_server import make_server
+import io
+import os
+from functools import reduce
 
+import logging
+log = logging.getLogger(__name__)
 
 
 
@@ -39,6 +44,60 @@ class WebCommandHandler():
         self.deviceMgr.execRemoteCommand(deviceClass,commandName,deviceId)           
 
 
+class VideoListHandler():
+    def __init__(self):
+        pass
+
+    def on_get(self, req, resp):
+        """Handles GET requests"""
+        resp.status = falcon.HTTP_200  # This is the default status
+        resp.text = ('{}')
+
+        files = os.listdir("videos")
+        files = map(lambda x: f'<a href="/video/{x}">{x}</a><br>',files)
+        result = reduce(lambda a,b:a+b,files,"")
+
+        resp.status = falcon.HTTP_200  
+        resp.content_type = falcon.MEDIA_HTML
+        resp.text = result
+
+class VideoWatchHandler():
+    def __init__(self):
+        pass
+
+    def on_get(self, req, resp,videoName):
+        """Handles GET requests"""
+
+        resp.status = falcon.HTTP_200  
+        resp.content_type = falcon.MEDIA_HTML
+        resp.text = f'''<video controls>
+                            <source src="/video/{videoName}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        '''        
+class VideoStreamHandler():
+    def __init__(self):
+        pass
+
+    def on_get(self, req, resp,videoName):
+        """Handles GET requests"""
+
+        videoPath = os.path.join("videos", videoName)
+        if not os.path.exists(videoPath):
+            log.debug(f'can\'t find {videoPath}')
+
+        resp.stream = io.open(videoPath, 'rb')
+        resp.content_length = os.path.getsize(videoPath)
+        log.debug(f'content length is {resp.content_length}')
+        resp.content_type = "video/h264"
+
+        
+        
+
+
+        resp.status = falcon.HTTP_200  # This is the default status
+        resp.text = ('{}')
+
 class RestService:
     def __init__(self,machine,deviceMgr):
         self.machine = machine
@@ -53,6 +112,10 @@ class RestService:
         self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
 
         self.app.add_route('/command/{deviceClass}/{deviceId}/{commandName}', WebCommandHandler(deviceMgr))
+
+        self.app.add_route('/', VideoListHandler())
+        self.app.add_route('/watch/{videoName}', VideoWatchHandler())
+        self.app.add_route('/video/{videoName}', VideoStreamHandler())
 
     def start(self):
         with make_server('', 8000, self.app) as httpd:
