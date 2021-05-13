@@ -1,5 +1,7 @@
 
 Tasks:
+* audio setup (and add to readme)
+*
 * add remote sensor event response
 * send sms notifications
 * look into Mosquito message broker http://mosquitto.org/documentation/
@@ -13,4 +15,4 @@ Tasks:
 * auto-start on boot
 * web serving of videos
 * cap videos by size
-* generic state machine 
+* generic state machine
