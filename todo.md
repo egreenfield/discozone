@@ -1,6 +1,7 @@
 
 Tasks:
 * audio setup (and add to readme)
+* auto-start setup
 *
 * add remote sensor event response
 * send sms notifications
