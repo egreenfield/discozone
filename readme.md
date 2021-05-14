@@ -52,8 +52,12 @@ duplicate config.json.sample to config.json and edit
 
 ### setup autoplay on boot
 
-edit .bashrc:
-`/home/pi/dev/discozone/godisco.sh &`
+edit .profile:
+`
+pushd /home/pi/dev/discozone
+/home/pi/dev/discozone/godisco.sh
+popd
+`
 
 # Running
 
