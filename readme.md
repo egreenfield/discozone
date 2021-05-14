@@ -38,6 +38,13 @@ do this:
 * generate a new rsh key (https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
 * copy it to the remote file server host (http://www.ssh.com/academy/ssh/copy-id)
 
+
+### Step 5: Make sure audio is working
+
+https://computers.tutsplus.com/articles/using-a-usb-audio-device-with-a-raspberry-pi--mac-55876
+`speaker-test -t wav -c 2`
+
+
 ### copy and set up your config file
 
 # Running
