@@ -47,6 +47,14 @@ https://computers.tutsplus.com/articles/using-a-usb-audio-device-with-a-raspberr
 
 ### copy and set up your config file
 
+duplicate config.json.sample to config.json and edit
+
+
+### setup autoplay on boot
+
+edit .bashrc:
+`/home/pi/dev/discozone/godisco.sh &`
+
 # Running
 
 To run the discozone on a pi:
