@@ -25,8 +25,8 @@ class Device:
     def onCommand(self,cmd,data = None):
         None
     def raiseEvent(self,event,data = None):
-        self.mgr.raiseEvent(self,event,data)        
-    
+        self.mgr.raiseEvent(self,event,data)
+
     def setConfig(self,config):
         None
 
@@ -46,12 +46,12 @@ class DeviceManager:
     def __init__(self,remote):
         self.deviceMap = {}
         self.remote = remote
-    
+
 
     def request(self,url):
         self.remote.request(url)
-    
-    
+
+
     def addDevice(self,device):
         devices = None
         deviceClass = device.className
@@ -62,7 +62,7 @@ class DeviceManager:
             devices = self.deviceMap[deviceClass] = []
         devices.append(device)
         device.setMgr(self)
-    
+
     def getFirstDevice(self,deviceClass):
         if (deviceClass in self.deviceMap):
             devices = self.deviceMap[deviceClass]
@@ -79,11 +79,12 @@ class DeviceManager:
         self.sendCommand(deviceClass,cmd,deviceId,data)
 
     def sendCommand(self,deviceClass,cmd,deviceId = None, data = None):
-        #print(f'sending command {deviceClass} {deviceId} {cmd}')
+
         devices = self.getDevices(deviceClass)
         for aDevice in devices:
             #print(f'examining {deviceClass} {aDevice.id}')
             if(deviceId == None or deviceId == aDevice.id):
+                print(f'sending command {deviceClass} {aDevice.id} {cmd}')
                 aDevice.onCommand(cmd,data)
 
     def setEventHandler(self,eventHandler):
@@ -103,5 +104,3 @@ class DeviceManager:
             devices = self.deviceMap[aName]
             for aDevice in devices:
                 aDevice.shutdown()
-
-
