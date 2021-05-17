@@ -31,7 +31,7 @@ class DiscoBall (devices.Device):
             self.stop()
 
     def init(self):
-        GPIO.setmode(GPIO.BOARD)   
+        GPIO.setmode(GPIO.BOARD)
         GPIO.setup(motoRPin1,GPIO.OUT)   # set pins to OUTPUT mode
         GPIO.setup(motoRPin2,GPIO.OUT)
         GPIO.setup(enablePin,GPIO.OUT)
@@ -40,6 +40,7 @@ class DiscoBall (devices.Device):
         self.p.start(0)
 
     def spin(self):
+        print(f'running ball at {self.power}')
         self.motor(128 + 128 * self.power/100.0)
 
     def stop(self):
@@ -66,4 +67,4 @@ class DiscoBall (devices.Device):
     #    print ('The PWM duty cycle is %d%%\n'%(abs(value)*100/127))   # print PMW duty cycle.
 
     def shutdown(self):
-        self.p.stop()  # stop PWM    
+        self.p.stop()  # stop PWM

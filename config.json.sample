@@ -1,6 +1,21 @@
 {
-    "video": false,
-    "music": true,
-    "ball": true,
-    "videoStorage":"scp path"
+    "devices": [
+        {
+            "id":"sonar1",
+            "type":"sonar",
+            "class":"sonar",
+            "enabled":true,
+            "config": {
+                "detectionDistance": 150,
+                "debounceRate": 2
+            }
+        },
+        {
+        	"id":"tapedeck1",
+        	"type":"audio",
+        	"class":"audio",
+        	"enabled":true
+        }
+
+    ]
 }
