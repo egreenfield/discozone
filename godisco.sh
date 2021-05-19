@@ -1,6 +1,8 @@
 #!/bin/bash
 # godisco.sh
 
+#exit 0
+
 if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
         echo "[$(date)] : godisco.sh : ssh session, exiting"
         exit 0
@@ -19,5 +21,5 @@ for pid in $(pidof -x godisco.sh); do
     fi
 done
 
-/usr/bin/python3 app.py > logs/discoOutput.txt 2>&1 &
+/usr/bin/python3 app.py >> logs/commandLineOutput.txt 2>&1 &
 

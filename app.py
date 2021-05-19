@@ -80,7 +80,17 @@ app = App()
 
 if __name__ == '__main__':     # Program entrance
 
-    logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"),
+        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+        datefmt='%H:%M:%S')
+    # fh = logging.FileHandler('logs/discoOutput.txt')
+    # fh.setLevel(logging.DEBUG)
+    # log.addHandler(fh)
+    # logging.basicConfig(filename="logs/discoOutput.txt",
+    #                         filemode='a',
+    #                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+    #                         datefmt='%H:%M:%S',
+    #                         level=logging.DEBUG)
     app.setup()
     try:
         log.debug(f'Starting discozone, current directory is {os.getcwd()}')
