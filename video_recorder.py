@@ -68,6 +68,7 @@ class VideoRecorder(devices.Device):
     deleteOnUpload:bool = True
     maxVideoCount:int = 20
     localStorage:str = ""
+    flip = True
 
     def __init__(self):
         devices.Device.__init__(self)
@@ -82,6 +83,8 @@ class VideoRecorder(devices.Device):
             self.deleteOnUpload = config['deleteOnUpload']
         if('maxVideoCount' in config):
             self.maxVideoCount = config['maxVideoCount']
+        if('flip' in config):
+            self.flip = config['flip']
 
     def init(self):
         self.packager = PackagerThread(self)
@@ -98,7 +101,11 @@ class VideoRecorder(devices.Device):
         now = datetime.datetime.now()
         self.currentVideoName = f'{now.year}_{now.month}_{now.day}_{now.hour}_{now.minute}_{now.second}'
         print(f'video name is {self.currentVideoName}')
-        self.videoProcess = subprocess.Popen(['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000'])
+        if(self.flip):
+            opts = ['raspivid', '--vflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
+        else:
+            ops = ['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
+        self.videoProcess = subprocess.Popen(opts)
 
     def stop(self):
         if(self.videoProcess != None):

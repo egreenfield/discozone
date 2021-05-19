@@ -4,6 +4,10 @@ import devices
 from wsgiref.simple_server import make_server
 import io
 import os
+import re
+import datetime
+
+
 from functools import reduce
 
 import logging
@@ -44,6 +48,13 @@ class WebCommandHandler():
         self.deviceMgr.execRemoteCommand(deviceClass,commandName,deviceId)           
 
 
+def nameToDate(name):
+    m = re.search(r"(\d*)_(\d*)_(\d*)_(\d*)_(\d*)_(\d*)",name)
+    d = datetime.datetime(int(m.group(1)),int(m.group(2)),int(m.group(3)),int(m.group(4)),int(m.group(5)))
+    return d.strftime("%a %b %-d, %-I:%M %p")
+    return f'{match.group(1)} {match.group(2)} {match.group(3)}'
+
+
 class VideoListHandler():
     def __init__(self):
         pass
@@ -54,7 +65,8 @@ class VideoListHandler():
         resp.text = ('{}')
 
         files = os.listdir("videos")
-        files = map(lambda x: f'<a href="/video/{x}">{x}</a><br>',files)
+        files.sort(reverse=True)
+        files = map(lambda x: f'<a href="/video/{x}">{nameToDate(x)}</a><br>',files)
         result = reduce(lambda a,b:a+b,files,"")
 
         resp.status = falcon.HTTP_200  
@@ -86,17 +98,25 @@ class VideoStreamHandler():
         if not os.path.exists(videoPath):
             log.debug(f'can\'t find {videoPath}')
 
-        resp.stream = io.open(videoPath, 'rb')
-        resp.content_length = os.path.getsize(videoPath)
-        log.debug(f'content length is {resp.content_length}')
-        resp.content_type = "video/h264"
+        # resp.stream = io.open(videoPath, 'rb')
+        # resp.content_length = os.path.getsize(videoPath)
+        # log.debug(f'content length is {resp.content_length}')
+        # resp.content_type = "video/h264"
 
+        # media = 'test.mp4'
+        resp.set_header('Content-Type', 'video/mp4')
+        log.debug(f'opening "{videoPath}"')
+        stream = open(videoPath,'rb')
+        size = os.path.getsize(videoPath)            
+        #resp.content_length = size
+        resp.set_stream(stream,size)
+        #resp.body = stream.read(size)
         
         
 
 
         resp.status = falcon.HTTP_200  # This is the default status
-        resp.text = ('{}')
+#        resp.text = ('{}')
 
 class RestService:
     def __init__(self,machine,deviceMgr):
