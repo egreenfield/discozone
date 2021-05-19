@@ -28,6 +28,7 @@ Not necessary, but makes life easy:
 
 do this:
 `pip install falcon`
+`pip install twilio`
 
 (This fancy version isn't working, don't do this)
 `python3 -m pip install --user pipenv`
