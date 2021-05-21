@@ -1,6 +1,7 @@
 import subprocess
 import datetime
 import os
+import re
 from collections import deque
 import threading
 import devices
@@ -19,6 +20,7 @@ class PackagerThread (threading.Thread):
 
 
     def run(self):
+        self.findOldJobs()
         while(True):
             videoName = None
             with self.lock:
@@ -27,6 +29,19 @@ class PackagerThread (threading.Thread):
                 videoName = self.videos.popleft()
                 log.debug(f'packaging {videoName}')                
             self._package(videoName)
+
+    def h264Name(filename):
+        m = re.search(r"(.*)\.h264",filename)
+        if(m == None):
+            return False;
+        return m.group(1)
+
+    def findOldJobs(self):
+        files = os.listdir(self.recorder.localStorage)
+        files = map(lambda videoName : videoName.split(".")[0], filter(lambda videoName : re.search(r"(.*)\.h264",videoName) != None,files))
+        log.debug(f'found {files} waiting to be processed')
+        for aFile in files:
+            self.videos.append(aFile)
 
     def _package(self,videoName):
         videoRemoved = False
@@ -47,7 +62,7 @@ class PackagerThread (threading.Thread):
         if(videoRemoved):
             return
         self.completedVideos.append(mp4Path)
-        if(len(self.completedVideos) > self.recorder.maxVideoCount):
+        if(self.recorder.maxVideoCount > 0 and len(self.completedVideos) > self.recorder.maxVideoCount):
             deadVideo = self.completedVideos.popleft()
             os.remove(deadVideo)
 
@@ -66,7 +81,7 @@ class VideoRecorder(devices.Device):
     videoProcess:subprocess.Popen = None
     remoteStorage:str = None
     deleteOnUpload:bool = True
-    maxVideoCount:int = 20
+    maxVideoCount:int = 0
     localStorage:str = ""
     flip = True
 
