@@ -2,20 +2,6 @@ from dataclasses import dataclass, field
 import json
 import os
 
-from tapedeck import Tapedeck
-from video_recorder import VideoRecorder
-from disco_ball import DiscoBall
-from sonar import Sonar
-from devices import RemoteDevice
-from timer_device import TimerDevice
-deviceMap = {
-    "audio": Tapedeck,
-    "video": VideoRecorder,
-    "ball": DiscoBall,
-    "sonar": Sonar,
-    "remote": RemoteDevice,
-    "timer": TimerDevice
-}
 
 @dataclass
 class Config:
@@ -27,6 +13,7 @@ class Config:
     deviceConfig:dict = field(default_factory=dict)
     # followers:list = field(default_factory=list)
     leader:str = None
+    deviceMap = None
 
 
 
@@ -36,6 +23,9 @@ class Config:
     #     if name in data:
     #         setattr(self,name,data[srcName])
 
+    @classmethod
+    def setDeviceTypes(cls,deviceMap):
+        cls.deviceMap = deviceMap
 
     @classmethod
     def load(cls,jsonPath):
@@ -61,14 +51,14 @@ class Config:
         return f
 
 
-    @staticmethod
-    def loadDevicesFromConfigData(config,deviceMgr):
+    @classmethod
+    def loadDevicesFromConfigData(cls,config,deviceMgr):
         deviceConfig = config.deviceConfig
         for aDevice in deviceConfig:
             if ('enabled' in aDevice and aDevice['enabled'] == False):
                 continue
             typeName = aDevice['type']
-            device = deviceMap[typeName]()
+            device = cls.deviceMap[typeName]()
             if ('id' in aDevice):
                 device.setId(aDevice['id'])
             if('class' in aDevice):

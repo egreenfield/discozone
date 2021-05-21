@@ -8,6 +8,14 @@ import devices
 import time
 from remote import Remote
 
+from tapedeck import Tapedeck
+from video_recorder import VideoRecorder
+from disco_ball import DiscoBall
+from sonar import Sonar
+from devices import RemoteDevice
+from timer_device import TimerDevice
+
+
 from config import Config
 
 from disco_machine import DiscoMachine
@@ -21,6 +29,17 @@ log = logging.getLogger(__name__)
 # 
 # Model and State
 #
+
+deviceMap = {
+    "audio": Tapedeck,
+    "video": VideoRecorder,
+    "ball": DiscoBall,
+    "sonar": Sonar,
+    "remote": RemoteDevice,
+    "timer": TimerDevice
+}
+
+
 class App:
     machine: DiscoMachine = None
     deviceMgr: devices.DeviceManager = None
@@ -41,6 +60,8 @@ class App:
             self.remote.request(f'http://{self.config.leader}:8000/event/{event}')
 
     def setup(self):
+
+        Config.setDeviceTypes(deviceMap)
         self.config = Config.load('config.json')
 
         self.remote = Remote()

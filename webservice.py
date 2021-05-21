@@ -1,7 +1,7 @@
 import falcon
 import disco
 import devices
-from wsgiref.simple_server import make_server
+from werkzeug.serving import run_simple
 import io
 import os
 import re
@@ -50,6 +50,8 @@ class WebCommandHandler():
 
 def nameToDate(name):
     m = re.search(r"(\d*)_(\d*)_(\d*)_(\d*)_(\d*)_(\d*)",name)
+    if(m == None):
+        return None
     d = datetime.datetime(int(m.group(1)),int(m.group(2)),int(m.group(3)),int(m.group(4)),int(m.group(5)))
     return d.strftime("%a %b %-d, %-I:%M %p")
     return f'{match.group(1)} {match.group(2)} {match.group(3)}'
@@ -64,7 +66,9 @@ class VideoListHandler():
 
         files = os.listdir("videos")
         files.sort(reverse=True)
-        files = map(lambda x: f'<a href="/video/{x}">{nameToDate(x)}</a><br>',files)
+        files = map(lambda x: nameToDate(x),files)
+        files = filter(lambda x: x != None,files)
+        files = map(lambda x: f'<a href="/video/{x}">{x}</a><br>',files)
         result = reduce(lambda a,b:a+b,files,"")
 
         resp.status = falcon.HTTP_200  
@@ -138,10 +142,10 @@ class RestService:
         self.app.add_route('/admin/{deviceId}', admin, suffice="device")
 
     def start(self):
-        with make_server('', 8000, self.app) as httpd:
-            print('Serving on port 8000...')
-
-            # Serve until process is killed
-            httpd.serve_forever()
+        print('Serving on port 8000...')
+        print(f'video path is {os.path.join(os.path.dirname(__file__),"videos")}')
+        run_simple('localhost', 8000, self.app, use_reloader=True, threaded=True,static_files={
+                '/videos': os.path.join(os.path.dirname(__file__), 'videos')
+            })
 
 
