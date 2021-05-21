@@ -5,7 +5,7 @@ from disco_ball import DiscoBallCommand
 from video_recorder import VideoRecorderCommand
 from sonar import SonarEvent
 from state_machine import StateMachine
-
+from timer_device import TimerEvent, TimerCommand
 import logging
 log = logging.getLogger(__name__)
 
@@ -25,13 +25,17 @@ class DiscoMachine(StateMachine):
                 },
                 State.PLAYING: {
                     SonarEvent.PERSON_LEFT: lambda f,t : State.LOOKING if config.silentWhenAlone else None,
-                    TapedeckEvent.SONG_STOPPED: State.LOOKING,
+                    TapedeckEvent.SONG_STOPPED: State.CLEARING,
                     Events.RemoteStop: State.LOOKING,
+                },
+                State.CLEARING: {
+                    TimerEvent.TIMER_COMPLETE: State.LOOKING
                 }
             },
             actions = {
                 '': {
                     State.PLAYING: lambda : self.startDiscoSession(),
+                    State.CLEARING: lambda : self.startClearing(),
                     State.LOOKING: lambda : self.endDiscoSession(),
                 }
             }
@@ -44,6 +48,10 @@ class DiscoMachine(StateMachine):
             self.deviceMgr.sendCommand("audio",TapedeckCommand.START)
         if(self.config.video):
             self.deviceMgr.sendCommand("video",VideoRecorderCommand.START)
+
+    def startClearing(self):
+        self.endDiscoSession()
+        self.deviceMgr.sendCommand("clearTimer",TimerCommand.START)
 
     def endDiscoSession(self):    
         self.deviceMgr.sendCommand("ball",DiscoBallCommand.STOP)

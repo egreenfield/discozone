@@ -7,13 +7,14 @@ from video_recorder import VideoRecorder
 from disco_ball import DiscoBall
 from sonar import Sonar
 from devices import RemoteDevice
-
+from timer_device import TimerDevice
 deviceMap = {
     "audio": Tapedeck,
     "video": VideoRecorder,
     "ball": DiscoBall,
     "sonar": Sonar,
-    "remote": RemoteDevice
+    "remote": RemoteDevice,
+    "timer": TimerDevice
 }
 
 @dataclass

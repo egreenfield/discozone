@@ -1,4 +1,7 @@
 from uuid import uuid4
+import logging
+log = logging.getLogger(__name__)
+
 
 class Device:
     id = None
@@ -84,7 +87,7 @@ class DeviceManager:
         for aDevice in devices:
             #print(f'examining {deviceClass} {aDevice.id}')
             if(deviceId == None or deviceId == aDevice.id):
-                print(f'sending command {deviceClass} {aDevice.id} {cmd}')
+                log.debug(f'sending command {deviceClass} {aDevice.id} {cmd}')
                 aDevice.onCommand(cmd,data)
 
     def setEventHandler(self,eventHandler):
