@@ -144,7 +144,7 @@ class RestService:
     def start(self):
         print('Serving on port 8000...')
         print(f'video path is {os.path.join(os.path.dirname(__file__),"videos")}')
-        run_simple('localhost', 8000, self.app, use_reloader=True, threaded=True,static_files={
+        run_simple('', 8000, self.app, use_reloader=True, threaded=True,static_files={
                 '/videos': os.path.join(os.path.dirname(__file__), 'videos')
             })
 
