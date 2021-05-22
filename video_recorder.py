@@ -119,7 +119,7 @@ class VideoRecorder(devices.Device):
         if(self.flip):
             opts = ['raspivid', '--vflip','--hflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
         else:
-            ops = ['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
+            opts = ['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
         self.videoProcess = subprocess.Popen(opts)
 
     def stop(self):
