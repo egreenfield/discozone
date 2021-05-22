@@ -27,11 +27,9 @@ Not necessary, but makes life easy:
 * falcon
 
 do this:
-`pip install falcon`
-`pip install twilio`
-
-(This fancy version isn't working, don't do this)
-`python3 -m pip install --user pipenv`
+`pip install falcon` for api server
+`pip install twilio` for SMS messaging
+`pip install werkzeug` for http server
 
 
 ### Step 2: Setup rsh
