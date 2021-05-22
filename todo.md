@@ -1,18 +1,13 @@
 
 Tasks:
 * auto-start setup
-*
-* add remote sensor event response
-* send sms notifications
+* remove non mp4 files from listing
+* register/unregister remote devices automatically
+* auto-lower discoball
+* change time from device to state machine action
 * look into Mosquito message broker http://mosquitto.org/documentation/
 * fix video upload to go somewhere accessible from phone
     * alternatively, add a website to make videos addressable
-* disco count
 * work without internet
 * power from battery?
-* 3rd pi for window
-* signs + containers
-* auto-start on boot
-* web serving of videos
 * cap videos by size
-* generic state machine
