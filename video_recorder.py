@@ -5,6 +5,7 @@ import re
 from collections import deque
 import threading
 import devices
+from twilio.rest import Client
 
 import logging
 log = logging.getLogger(__name__)
@@ -66,6 +67,21 @@ class PackagerThread (threading.Thread):
             deadVideo = self.completedVideos.popleft()
             os.remove(deadVideo)
 
+        if(self.recorder.sendSMS):
+            self.sendNotification(f'{videoName}.mp4')
+
+    def sendNotification(self,videoFilename):
+        account_sid = self.recorder.twilioId
+        auth_token = self.recorder.twilioToken
+        client = Client(account_sid, auth_token)
+
+        message = client.messages \
+                        .create(
+                            body=f'Disco Stu has a new convert.  See it here:  http://cookie.local:8000/video/{videoFilename}',
+                            from_=self.recorder.smsFrom,
+                            to=self.recorder.smsTo
+                        )
+
     
     def package(self,videoName):
         with(self.lock):
@@ -84,6 +100,11 @@ class VideoRecorder(devices.Device):
     maxVideoCount:int = 0
     localStorage:str = ""
     flip = True
+    sendSMS = False
+    smsFrom = ""
+    smsTo = ""
+    twilioId = ""
+    twilioToken = ""
 
     def __init__(self):
         devices.Device.__init__(self)
@@ -100,6 +121,15 @@ class VideoRecorder(devices.Device):
             self.maxVideoCount = config['maxVideoCount']
         if('flip' in config):
             self.flip = config['flip']
+        if('sendSMS' in config):
+            self.sendSMS = config['sendSMS']
+            if(self.sendSMS):
+                self.twilioId = config['twilioId']
+                self.twilioToken = config['twilioToken']
+                if('smsFrom' in config):
+                    self.smsFrom = config['smsFrom']
+                if('smsTo' in config):
+                    self.smsTo = config['smsTo']
 
     def init(self):
         self.packager = PackagerThread(self)

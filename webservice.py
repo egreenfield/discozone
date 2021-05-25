@@ -53,9 +53,12 @@ def nameToDate(name):
     if(m == None):
         return None
     d = datetime.datetime(int(m.group(1)),int(m.group(2)),int(m.group(3)),int(m.group(4)),int(m.group(5)))
-    return d.strftime("%a %b %-d, %-I:%M %p")
+    #return d.strftime("%a %b %-d, %-I:%M %p")
+    return d
     return f'{match.group(1)} {match.group(2)} {match.group(3)}'
 
+def prettyDate(d):
+    return d.strftime("%a %b %-d, %-I:%M %p")
 
 class VideoListHandler():
     def __init__(self):
@@ -66,9 +69,14 @@ class VideoListHandler():
 
         files = os.listdir("videos")
         files.sort(reverse=True)
-        files = map(lambda x: nameToDate(x),files)
-        files = filter(lambda x: x != None,files)
-        files = map(lambda x: f'<a href="/video/{x}">{x}</a><br>',files)
+        # only mp4s
+        files = filter(lambda x: x.find("mp4") > 0,files)
+        # extract dates
+        files = map(lambda x: (x,nameToDate(x)),files)
+        # remove poorly formatted files
+        files = filter(lambda x: x[1] != None,files)
+#        files = map(lambda x: f'<a href="/video/{x}">{x}</a><br>',files)
+        files = map(lambda x: f'<a href="/video/{x[0]}">{prettyDate(x[1])}</a><br>',files)
         result = reduce(lambda a,b:a+b,files,"")
 
         resp.status = falcon.HTTP_200  
