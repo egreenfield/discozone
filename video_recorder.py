@@ -6,6 +6,7 @@ from collections import deque
 import threading
 import devices
 from twilio.rest import Client
+from remote_storage import S3Storage
 
 import logging
 log = logging.getLogger(__name__)
@@ -18,7 +19,6 @@ class PackagerThread (threading.Thread):
         threading.Thread.__init__(self,daemon=True)
         self.recorder = recorder
         self.completedVideos = deque()
-
 
     def run(self):
         self.findOldJobs()
@@ -54,10 +54,8 @@ class PackagerThread (threading.Thread):
         if os.path.exists(h264Path):
             os.remove(h264Path)             
         if (self.recorder.remoteStorage):
-            scpProc = subprocess.Popen(['scp', mp4Path, self.recorder.remoteStorage])
-            result = scpProc.wait()
-            print(f'upload result is {result}')
-            if(result == 0 and self.recorder.deleteOnUpload):
+            uploaded = self.recorder.remoteStorage.upload(mp4Path)
+            if(uploaded == True and self.recorder.deleteOnUpload):
                 os.remove(mp4Name)             
                 videoRemoved = True
         if(videoRemoved):
@@ -95,7 +93,6 @@ class VideoRecorderCommand:
 class VideoRecorder(devices.Device):
     currentVideoName:str = None
     videoProcess:subprocess.Popen = None
-    remoteStorage:str = None
     deleteOnUpload:bool = True
     maxVideoCount:int = 0
     localStorage:str = ""
@@ -108,11 +105,10 @@ class VideoRecorder(devices.Device):
 
     def __init__(self):
         devices.Device.__init__(self)
+        self.remoteStorage = None
 
     def setConfig(self,config):
         devices.Device.setConfig(self,config)
-        if('remoteStorage' in config):
-            self.remoteStorage = config['remoteStorage']
         if('localStorage' in config):
             self.localStorage = config['localStorage']
         if('deleteOnUpload' in config):
@@ -130,6 +126,9 @@ class VideoRecorder(devices.Device):
                     self.smsFrom = config['smsFrom']
                 if('smsTo' in config):
                     self.smsTo = config['smsTo']
+        if('storageOptions' in config):
+            self.remoteStorage = S3Storage()
+            self.remoteStorage.setConfig(config['storageOptions'])
 
     def init(self):
         self.packager = PackagerThread(self)
