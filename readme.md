@@ -15,6 +15,18 @@ Not necessary, but makes life easy:
 
 `ln -s python3 python`
 
+Optionally, install pyenv:
+(see https://github.com/pyenv/pyenv and https://binx.io/blog/2019/04/12/installing-pyenv-on-macos/)
+
+`brew install pyenv
+pyenv install 3.8.10
+cd <project root>/browser
+pyenv local 3.8.10
+cd <project root>
+pyenv install 3.9.5 (or latest)
+pyenv local 3.9.5 (or latest)
+`
+
 ### Step 2: install software
 
 `sudo apt-get install gpac`
@@ -67,3 +79,8 @@ do this:
 
 (not this fancy experiment:)
 `pipenv run python main.py`
+
+### Edit / Use the browser
+
+see https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-getting-started-hello-world.html
+
