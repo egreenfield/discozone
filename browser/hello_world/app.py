@@ -1,4 +1,5 @@
 import boto3
+import json
 import re
 import datetime
 from functools import reduce
@@ -15,6 +16,32 @@ def nameToDate(name):
 def prettyDate(d):
     return d.strftime("%a %b %-d, %-I:%M %p")
 
+def show_video(event, context):
+
+    videoName = event['pathParameters']['id']
+#    videoName = ""
+    body = f'''<video controls>
+                <source src="http://disco-videos.s3-website-us-west-2.amazonaws.com/{videoName}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            '''        
+
+    # print(f'event resource is: {event["resource"]}')
+    #  return {
+    #     "statusCode": 200,
+    #     "body": '',
+    #     "headers": {
+    #         "Content-Type": "application/json"
+    #     },
+    # }
+
+    return {
+        "statusCode": 200,
+        "body": body,
+        "headers": {
+            "Content-Type": "text/html"
+        },
+    }
 
 def list_videos(event, context):
     """Sample pure Lambda function
@@ -52,7 +79,7 @@ def list_videos(event, context):
     s3 = boto3.resource('s3')
     body = ""
     bucket = s3.Bucket(bucketName)
-    path = "https://disco-videos.s3.amazonaws.com/"
+    path = "http://disco-videos.s3-website-us-west-2.amazonaws.com/"
 
     # for object in bucket.objects.all():
     #     body += f'<a href="http://disco-videos.s3-website-us-west-2.amazonaws.com/{object.key}<br>'

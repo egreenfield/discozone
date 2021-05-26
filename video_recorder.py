@@ -75,7 +75,7 @@ class PackagerThread (threading.Thread):
 
         message = client.messages \
                         .create(
-                            body=f'Disco Stu has a new convert.  See it here:  http://cookie.local:8000/video/{videoFilename}',
+                            body=f'Disco Stu has a new convert.  See it here:  http://disco-videos.s3-website-us-west-2.amazonaws.com/{videoFilename}',
                             from_=self.recorder.smsFrom,
                             to=self.recorder.smsTo
                         )

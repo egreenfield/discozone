@@ -23,6 +23,19 @@ Resources:
           Properties:
             Path: /
             Method: get
+  ShowVideoFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello_world/
+      FunctionName: show-video
+      Handler: app.show_video
+      Runtime: python3.8
+      Events:
+        ShowVideo:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /video/{id}
+            Method: get
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
