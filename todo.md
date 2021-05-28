@@ -1,6 +1,11 @@
 
 Tasks:
-* remove non mp4 files from listing
+* log output to file
+* check logs for which device is triggering
+* log readings from sonar sensors
+* move videos into separate folders per stage
+* resume uploads after reboot
+* update web-app to delete files.
 * register/unregister remote devices automatically
 * auto-lower discoball
 * change time from device to state machine action

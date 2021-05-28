@@ -7,7 +7,7 @@ from functools import reduce
 # import requests
 
 def nameToDate(name):
-    m = re.search(r"(\d*)_(\d*)_(\d*)_(\d*)_(\d*)_(\d*)",name)
+    m = re.search(r"videos/(\d*)_(\d*)_(\d*)_(\d*)_(\d*)_(\d*)",name)
     if(m == None):
         return None
     d = datetime.datetime(int(m.group(1)),int(m.group(2)),int(m.group(3)),int(m.group(4)),int(m.group(5)))
@@ -84,6 +84,7 @@ def list_videos(event, context):
     # for object in bucket.objects.all():
     #     body += f'<a href="http://disco-videos.s3-website-us-west-2.amazonaws.com/{object.key}<br>'
 
+    files = bucket.objects.filter(Prefix='videos/')
     files = bucket.objects.all()
     files = map(lambda x: x.key,files)
     files = sorted(files,reverse=True)
