@@ -26,11 +26,13 @@ class S3Storage:
         )
         self.client = boto3.client('s3', config=myConfig)
 
-    def upload(self,filename):
+    def upload(self,filename,remoteName=None):
         if(self.client == None):
             self.createClient()
         try:
-            objectName = os.path.basename(filename)
+            objectName = remoteName
+            if(objectName == None):
+                objectName = os.path.basename(filename)
             self.client.upload_file(filename, self.bucketName, objectName,ExtraArgs={'ContentType': 'video/mp4'})
             return True
         except FileNotFoundError:
