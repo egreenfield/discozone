@@ -11,24 +11,25 @@ Globals:
     Timeout: 3
 
 Resources:
-  HelloWorldFunction:
+  HomePageFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello_world/
-      Handler: app.list_videos
+      CodeUri: disco_base/
+      Handler: server_app.homepage
       Runtime: python3.8
       Events:
-        HelloWorld:
+        HomePage:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /
             Method: get
+
   ShowVideoFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello_world/
+      CodeUri: disco_base/
       FunctionName: show-video
-      Handler: app.show_video
+      Handler: server_app.show_video
       Runtime: python3.8
       Events:
         ShowVideo:
@@ -37,16 +38,30 @@ Resources:
             Path: /video/{id}
             Method: get
 
+  ListVideosFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: disco_base/
+      Handler: server_app.list_videos
+      Runtime: python3.8
+      Events:
+        HomePage:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /video
+            Method: get
+
+            
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
+  HomePageApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-  HelloWorldFunction:
+  HomePageFunction:
     Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
+    Value: !GetAtt HomePageFunction.Arn
+  HomePageFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+    Value: !GetAtt HomePageFunctionRole.Arn

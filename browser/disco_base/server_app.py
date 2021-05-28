@@ -43,7 +43,7 @@ def show_video(event, context):
         },
     }
 
-def list_videos(event, context):
+def homepage(event, context):
     """Sample pure Lambda function
 
     Parameters
@@ -103,5 +103,33 @@ def list_videos(event, context):
         "body": body,
         "headers": {
             "Content-Type": "text/html"
+        },
+    }
+
+def list_videos(event, context):
+
+    bucketName = "disco-videos"
+
+    s3 = boto3.resource('s3')
+    body = ""
+    bucket = s3.Bucket(bucketName)
+    path = "http://disco-videos.s3-website-us-west-2.amazonaws.com/"
+
+    # for object in bucket.objects.all():
+    #     body += f'<a href="http://disco-videos.s3-website-us-west-2.amazonaws.com/{object.key}<br>'
+
+    files = bucket.objects.filter(Prefix='videos/')
+    files = bucket.objects.all()
+#    files = map(lambda x: re.search(r"videos/(.*)\.mp4",x.key).group(1),files)
+    files = map(lambda x: {"key":x.key},files)
+#    files = sorted(files,reverse=True)
+    body = json.dumps(list(files))
+
+
+    return {
+        "statusCode": 200,
+        "body": body,
+        "headers": {
+            "Content-Type": "application/json"
         },
     }

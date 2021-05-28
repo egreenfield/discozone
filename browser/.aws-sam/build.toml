@@ -2,10 +2,10 @@
 
 [function_build_definitions]
 [function_build_definitions.b0d12c97-c08c-4a2e-aa27-816ed0bbf0b0]
-codeuri = "/Volumes/J/Content/dev/discozone/browser/hello_world"
+codeuri = "/Volumes/J/Content/dev/discozone/browser/disco_base"
 runtime = "python3.8"
 source_md5 = ""
 packagetype = "Zip"
-functions = ["HelloWorldFunction", "ShowVideoFunction"]
+functions = ["HomePageFunction", "ShowVideoFunction", "ListVideosFunction"]
 
 [layer_build_definitions]

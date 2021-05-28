@@ -21,5 +21,5 @@ for pid in $(pidof -x godisco.sh); do
     fi
 done
 
-/usr/bin/python3 app.py >> logs/commandLineOutput.txt 2>&1 &
+/usr/bin/python3 device_app.py >> logs/commandLineOutput.txt 2>&1 &
 
