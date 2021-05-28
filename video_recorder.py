@@ -54,7 +54,7 @@ class PackagerThread (threading.Thread):
         if os.path.exists(h264Path):
             os.remove(h264Path)             
         if (self.recorder.remoteStorage):
-            uploaded = self.recorder.remoteStorage.upload(mp4Path)
+            uploaded = self.recorder.remoteStorage.upload(mp4Path,"videos/"+ os.path.basename(mp4Path))
             if(uploaded == True and self.recorder.deleteOnUpload):
                 os.remove(mp4Name)             
                 videoRemoved = True
@@ -143,7 +143,7 @@ class VideoRecorder(devices.Device):
 
     def start(self):
         now = datetime.datetime.now()
-        self.currentVideoName = f'{now.year}_{now.month}_{now.day}_{now.hour}_{now.minute}_{now.second}'
+        self.currentVideoName =  now.strftime("%Y_%m_%d_%H_%M_%S")
         print(f'video name is {self.currentVideoName}')
         if(self.flip):
             opts = ['raspivid', '--vflip','--hflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
