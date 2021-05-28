@@ -21,7 +21,7 @@ function App({server}: AppProps) {
     return ()=>{server.removeEventListener(Server.VIDEOS_CHANGED_EVENT,videosChanged)}
   }, [server])
 
-  let loadingImage = videos.length? <img src={logo} className="App-logo" alt="logo" /> : undefined;
+  let loadingImage = (videos.length == 0)? <img src={logo} className="App-logo" alt="logo" /> : undefined;
 
   // Return the App component.
   return (

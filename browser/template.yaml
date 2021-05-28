@@ -11,6 +11,17 @@ Globals:
     Timeout: 3
 
 Resources:
+  DiscoApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: Disco Api Gateway
+      StageName: Prod
+      Cors:
+        AllowMethods: "'POST, GET'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+
+
   HomePageFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -21,6 +32,7 @@ Resources:
         HomePage:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
+            RestApiId: !Ref DiscoApiGateway
             Path: /
             Method: get
 
@@ -35,6 +47,7 @@ Resources:
         ShowVideo:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
+            RestApiId: !Ref DiscoApiGateway
             Path: /video/{id}
             Method: get
 
@@ -48,6 +61,7 @@ Resources:
         HomePage:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
+            RestApiId: !Ref DiscoApiGateway
             Path: /video
             Method: get
 
@@ -58,7 +72,7 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   HomePageApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${DiscoApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   HomePageFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt HomePageFunction.Arn
