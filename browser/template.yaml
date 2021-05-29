@@ -5,10 +5,6 @@ Description: >
 
   Sample SAM Template for browser
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-Globals:
-  Function:
-    Timeout: 3
 
 Parameters:
   LambdaSg:
@@ -40,6 +36,24 @@ Parameters:
     MaxLength: '41'
     AllowedPattern: '[a-zA-Z0-9]*'
     ConstraintDescription: must contain only alphanumeric characters.
+
+
+    # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    CodeUri: disco_base/
+    Runtime: python3.8
+    Environment:
+      Variables:
+        DBNAME: !Ref DBName
+        DBUSERNAME: !Ref DBUsername
+        DBPASSWORD: !Ref DBPassword
+        DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
+    VpcConfig:
+      SecurityGroupIds:
+        - !Ref LambdaSg
+      SubnetIds: !Ref LambdaSubnets
 
 Resources:
   DanceDatabaseCluster:
@@ -74,17 +88,11 @@ Resources:
   HomePageFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: disco_base/
       Handler: server_app.homepage
-      Runtime: python3.8
       Policies:
         - VPCAccessPolicy: {}
         - S3FullAccessPolicy:
             BucketName: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSg
-        SubnetIds: !Ref LambdaSubnets
       Events:
         HomePage:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -95,80 +103,112 @@ Resources:
 
 
   HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: disco_base/
       Handler: server_app.hello_world
-      Runtime: python3.8
       Policies:
         - VPCAccessPolicy: {}
         - S3FullAccessPolicy:
             BucketName: "*"
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSg
-        SubnetIds: !Ref LambdaSubnets
-      Environment:
-        Variables:
-          DBNAME: !Ref DBName
-          DBUSERNAME: !Ref DBUsername
-          DBPASSWORD: !Ref DBPassword
-          DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
       Events:
         HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             RestApiId: !Ref DiscoApiGateway
             Path: /hello_world
             Method: get
 
   ShowVideoFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: disco_base/
       FunctionName: show-video
       Handler: server_app.show_video
-      Runtime: python3.8
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
       Events:
         ShowVideo:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api 
           Properties:
             RestApiId: !Ref DiscoApiGateway
             Path: /video/{id}
             Method: get
 
   ListDancesFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: disco_base/
       Handler: server_app.list_dances
-      Runtime: python3.8
-      Environment:
-        Variables:
-          DBNAME: !Ref DBName
-          DBUSERNAME: !Ref DBUsername
-          DBPASSWORD: !Ref DBPassword
-          DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
       Events:
-        HomePage:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        ListDances:
+          Type: Api 
           Properties:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance
             Method: get
-
-  InitDBFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  
+  CreateDanceFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: disco_base/
-      Handler: server_app.init_db
-      Runtime: python3.8
+      Handler: server_app.create_dance
       Policies:
         - VPCAccessPolicy: {}
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSg
-        SubnetIds: !Ref LambdaSubnets
+        - S3FullAccessPolicy:
+            BucketName: "*"
+      Events:
+        CreateDance:
+          Type: Api 
+          Properties:
+            RestApiId: !Ref DiscoApiGateway
+            Path: /dance
+            Method: post
+
+
+  UpdateDanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: server_app.update_dance
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
+      Events:
+        CreateDance:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DiscoApiGateway
+            Path: /dance
+            Method: put
+
+    DeleteDanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: server_app.delete_dance
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
+      Events:
+        CreateDance:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DiscoApiGateway
+            Path: /dance
+            Method: delete
+
+
+      InitDBFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: server_app.init_db
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
       Environment:
         Variables:
           DBNAME: !Ref DBName
@@ -176,7 +216,10 @@ Resources:
           DBPASSWORD: !Ref DBPassword
           DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
             
-            
+ 
+          
+
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

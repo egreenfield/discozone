@@ -6,6 +6,6 @@ codeuri = "/Volumes/J/Content/dev/discozone/browser/disco_base"
 runtime = "python3.8"
 source_md5 = ""
 packagetype = "Zip"
-functions = ["HomePageFunction", "HelloWorldFunction", "ShowVideoFunction", "ListDancesFunction", "InitDBFunction"]
+functions = ["HomePageFunction", "HelloWorldFunction", "ShowVideoFunction", "ListDancesFunction", "CreateDanceFunction", "UpdateDanceFunction"]
 
 [layer_build_definitions]

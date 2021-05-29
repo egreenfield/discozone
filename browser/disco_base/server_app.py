@@ -27,13 +27,23 @@ dbName = os.environ['DBNAME']
 
 try:
     #logger.info(f'connecting with c:{dbConnection}, u:{dbUsername}, p:{dbPassword}')
-    conn = pymysql.connect(host=dbConnection, user=dbUsername, passwd=dbPassword, db=dbName, connect_timeout=2)
+    conn = pymysql.connect(host=dbConnection, user=dbUsername, passwd=dbPassword, db=dbName, connect_timeout=2,cursorclass=pymysql.cursors.DictCursor)
 except pymysql.MySQLError as e:
     logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
     logger.error(e)
     sys.exit()
 logger.info("SUCCESS: Connection to RDS MySQL instance succeeded")
 
+
+jsonHeaders = {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Headers": 
+                    "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+                "Access-Control-Allow-Methods": 
+                    "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+                "Access-Control-Allow-Origin": 
+                    "*"
+            }
 
 
 ##------------------------------------------------------------------------------------------------------------------------------
@@ -132,15 +142,7 @@ def hello_world(event, context):
     return {
         "statusCode": 200,
         "body": '["hello, world"]',
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": 
-                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Methods": 
-                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
-            "Access-Control-Allow-Origin": 
-                "*"
-        },
+        "headers": jsonHeaders,
     }
 
 ##------------------------------------------------------------------------------------------------------------------------------
@@ -157,22 +159,18 @@ SELECT * FROM Dance ORDER BY time;
     logger.info("Connecting to DB")
 
     with conn.cursor() as cur:
-        cur.execute(dbScript)
+        cur.execute("SELECT * FROM Dance ORDER BY time")
+        rows = cur.fetchall()
+        body = json.dumps({
+            "result":0,
+            "rows": rows
+        })
 
-    logger.info("SUCCESS Connected to DB")
-    return {
-        "statusCode": 200,
-        "body": "{}",
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": 
-                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Methods": 
-                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
-            "Access-Control-Allow-Origin": 
-                "*"
-        },
-    }
+        return {
+            "statusCode": 200,
+            "body": body,
+            "headers": jsonHeaders,
+        }
 
 ##------------------------------------------------------------------------------------------------------------------------------
 ## create new dance
@@ -194,15 +192,7 @@ SELECT * FROM Dance ORDER BY time;
     return {
         "statusCode": 200,
         "body": "{}",
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": 
-                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Methods": 
-                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
-            "Access-Control-Allow-Origin": 
-                "*"
-        },
+        "headers": jsonHeaders,
     }
 
 
@@ -212,9 +202,6 @@ SELECT * FROM Dance ORDER BY time;
 
 def update_dance(event, context):
     dbScript = '''
--- ****************** SqlDBM: MySQL ******************;
--- ***************************************************;
--- **************************************;
 SELECT * FROM Dance ORDER BY time;
 '''    
     logger.info("Connecting to DB")
@@ -226,17 +213,29 @@ SELECT * FROM Dance ORDER BY time;
     return {
         "statusCode": 200,
         "body": "{}",
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": 
-                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Methods": 
-                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
-            "Access-Control-Allow-Origin": 
-                "*"
-        },
+        "headers": jsonHeaders,
     }
 
+
+##------------------------------------------------------------------------------------------------------------------------------
+## delete dance
+##------------------------------------------------------------------------------------------------------------------------------
+
+def delete_dance(event, context):
+    dbScript = '''
+SELECT * FROM Dance ORDER BY time;
+'''    
+    logger.info("Connecting to DB")
+
+    with conn.cursor() as cur:
+        cur.execute(dbScript)
+
+    logger.info("SUCCESS Connected to DB")
+    return {
+        "statusCode": 200,
+        "body": "{}",
+        "headers": jsonHeaders,
+    }
 
 ##------------------------------------------------------------------------------------------------------------------------------
 ## DB Init
@@ -269,13 +268,5 @@ about Customer';
     return {
         "statusCode": 200,
         "body": "{}",
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": 
-                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Methods": 
-                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
-            "Access-Control-Allow-Origin": 
-                "*"
-        },
+        "headers": jsonHeaders,
     }
