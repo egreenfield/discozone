@@ -88,6 +88,7 @@ Resources:
   HomePageFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
+      FunctionName: page-home
       Handler: server_app.homepage
       Policies:
         - VPCAccessPolicy: {}
@@ -105,6 +106,7 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: test-hello-world
       Handler: server_app.hello_world
       Policies:
         - VPCAccessPolicy: {}
@@ -121,7 +123,7 @@ Resources:
   ShowVideoFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      FunctionName: show-video
+      FunctionName: video-show
       Handler: server_app.show_video
       Policies:
         - VPCAccessPolicy: {}
@@ -138,6 +140,7 @@ Resources:
   ListDancesFunction:
     Type: AWS::Serverless::Function 
     Properties:
+      FunctionName: dance-list
       Handler: server_app.list_dances
       Policies:
         - VPCAccessPolicy: {}
@@ -150,9 +153,26 @@ Resources:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance
             Method: get
+
+  GetDanceFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      FunctionName: dance-get
+      Handler: server_app.get_dance
+      Policies:
+        - VPCAccessPolicy: {}
+      Events:
+        ShowVideo:
+          Type: Api 
+          Properties:
+            RestApiId: !Ref DiscoApiGateway
+            Path: /dance/{id}
+            Method: get
+
   CreateDanceFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: dance-create
       Handler: server_app.create_dance
       Policies:
         - VPCAccessPolicy: {}
@@ -165,9 +185,11 @@ Resources:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance
             Method: post
+
   UpdateDanceFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: dance-update
       Handler: server_app.update_dance
       Policies:
         - VPCAccessPolicy: {}
@@ -178,11 +200,13 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref DiscoApiGateway
-            Path: /dance
+            Path: /dance/{id}
             Method: put
+
   DeleteDanceFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: dance-delete
       Handler: server_app.delete_dance
       Policies:
         - VPCAccessPolicy: {}
@@ -193,11 +217,13 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref DiscoApiGateway
-            Path: /dance
-            Method: delete            
+            Path: /dance/{id}
+            Method: delete   
+
   InitDBFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: db-reset
       Handler: server_app.init_db
       Policies:
         - VPCAccessPolicy: {}

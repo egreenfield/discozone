@@ -162,18 +162,35 @@ def hello_world(event, context):
 ##------------------------------------------------------------------------------------------------------------------------------
 
 def list_dances(event, context):
-    dbScript = '''
--- ****************** SqlDBM: MySQL ******************;
--- ***************************************************;
--- **************************************;
-SELECT * FROM Dance ORDER BY time;
-'''    
-    logger.info("Connecting to DB")
-
     rows = db.listDances()
     body = toJson({
         "result":0,
         "rows": rows
+    })
+
+    return {
+        "statusCode": 200,
+        "body": body,
+        "headers": jsonHeaders,
+    }
+
+##------------------------------------------------------------------------------------------------------------------------------
+## List Videos
+##------------------------------------------------------------------------------------------------------------------------------
+
+def get_dance(event, context):
+
+    danceId = event['pathParameters']['id']
+
+    result = 0
+    row = db.getDanceById(int(danceId))
+    if(row == None):
+        row = {}
+        result = -1
+
+    body = toJson({
+        "result":result,
+        "dance": row
     })
 
     return {
@@ -246,29 +263,8 @@ SELECT * FROM Dance ORDER BY time;
 ##------------------------------------------------------------------------------------------------------------------------------
 def init_db(event, context):
 
-    dbScript = '''
--- ****************** SqlDBM: MySQL ******************;
--- ***************************************************;
--- **************************************;
-CREATE TABLE IF NOT EXISTS `Dance`
-(
-`Id`        int NOT NULL AUTO_INCREMENT ,
-`time`      datetime DEFAULT NOW() ,
-`favorite`  tinyint DEFAULT 0,
-`reviewed`  tinyint DEFAULT 0,
-`videofile` varchar(256) DEFAULT "",
-`comments`  varchar(256) DEFAULT "",
+    db.resetTables()
 
-PRIMARY KEY (`Id`)
-) AUTO_INCREMENT=1 COMMENT='Basic information 
-about Customer';
-'''    
-    logger.info("Connecting to DB")
-
-    with conn.cursor() as cur:
-        cur.execute(dbScript)
-
-    logger.info("SUCCESS Connected to DB")
     return {
         "statusCode": 200,
         "body": "{}",
