@@ -8,8 +8,8 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-dbUsername = "discostu" #os.environ['DBUSERNAME']
-dbPassword = "dance4you" #os.environ['DBPASSWORD']
+dbUsername = #os.environ['DBUSERNAME']
+dbPassword = #os.environ['DBPASSWORD']
 dbConnection = "disco-serverless-db.cluster-c4xguvxrtngc.us-west-2.rds.amazonaws.com" #os.environ['DBCONNECTION']
 
 try:
