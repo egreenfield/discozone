@@ -7,8 +7,13 @@ import datetime
 import logging
 import pymysql
 import sys
+from pymysql.constants import CLIENT
 
 from functools import reduce
+
+from discodb import DiscoDB
+
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -27,7 +32,8 @@ dbName = os.environ['DBNAME']
 
 try:
     #logger.info(f'connecting with c:{dbConnection}, u:{dbUsername}, p:{dbPassword}')
-    conn = pymysql.connect(host=dbConnection, user=dbUsername, passwd=dbPassword, db=dbName, connect_timeout=2,cursorclass=pymysql.cursors.DictCursor)
+    db = DiscoDB(username=dbUsername,password=dbPassword,host=dbConnection,dbName=dbName)
+    db.connect()
 except pymysql.MySQLError as e:
     logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
     logger.error(e)
@@ -75,6 +81,12 @@ def show_video(event, context):
             "Content-Type": "text/html"
         },
     }
+def convertDates(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
+
+def toJson(o):
+    return json.dumps(o, default = convertDates)
 
 ##------------------------------------------------------------------------------------------------------------------------------
 ## HomePage
@@ -158,40 +170,32 @@ SELECT * FROM Dance ORDER BY time;
 '''    
     logger.info("Connecting to DB")
 
-    with conn.cursor() as cur:
-        cur.execute("SELECT * FROM Dance ORDER BY time")
-        rows = cur.fetchall()
-        body = json.dumps({
-            "result":0,
-            "rows": rows
-        })
+    rows = db.listDances()
+    body = toJson({
+        "result":0,
+        "rows": rows
+    })
 
-        return {
-            "statusCode": 200,
-            "body": body,
-            "headers": jsonHeaders,
-        }
+    return {
+        "statusCode": 200,
+        "body": body,
+        "headers": jsonHeaders,
+    }
 
 ##------------------------------------------------------------------------------------------------------------------------------
 ## create new dance
 ##------------------------------------------------------------------------------------------------------------------------------
 
 def create_dance(event, context):
-    dbScript = '''
--- ****************** SqlDBM: MySQL ******************;
--- ***************************************************;
--- **************************************;
-SELECT * FROM Dance ORDER BY time;
-'''    
-    logger.info("Connecting to DB")
 
-    with conn.cursor() as cur:
-        cur.execute(dbScript)
-
-    logger.info("SUCCESS Connected to DB")
+    newDance = db.createDance()
+    body = toJson({
+        "result":0,
+        "dance": newDance
+    })
     return {
         "statusCode": 200,
-        "body": "{}",
+        "body": body,
         "headers": jsonHeaders,
     }
 
@@ -249,11 +253,11 @@ def init_db(event, context):
 CREATE TABLE IF NOT EXISTS `Dance`
 (
 `Id`        int NOT NULL AUTO_INCREMENT ,
-`time`      datetime NOT NULL ,
-`favorite`  tinyint NOT NULL ,
-`reviewed`  tinyint NOT NULL ,
-`videofile` varchar(256),
-`comments`  varchar(256),
+`time`      datetime DEFAULT NOW() ,
+`favorite`  tinyint DEFAULT 0,
+`reviewed`  tinyint DEFAULT 0,
+`videofile` varchar(256) DEFAULT "",
+`comments`  varchar(256) DEFAULT "",
 
 PRIMARY KEY (`Id`)
 ) AUTO_INCREMENT=1 COMMENT='Basic information 

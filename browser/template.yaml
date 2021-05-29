@@ -150,7 +150,6 @@ Resources:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance
             Method: get
-  
   CreateDanceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -166,8 +165,6 @@ Resources:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance
             Method: post
-
-
   UpdateDanceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -183,8 +180,7 @@ Resources:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance
             Method: put
-
-    DeleteDanceFunction:
+  DeleteDanceFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: server_app.delete_dance
@@ -198,10 +194,8 @@ Resources:
           Properties:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance
-            Method: delete
-
-
-      InitDBFunction:
+            Method: delete            
+  InitDBFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: server_app.init_db
