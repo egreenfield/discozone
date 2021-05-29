@@ -10,7 +10,47 @@ Globals:
   Function:
     Timeout: 3
 
+Parameters:
+  LambdaSg:
+    Description: "Lambda security group ID"
+    Type: AWS::EC2::SecurityGroup::Id
+  LambdaSubnets:
+    Description: "Lambda subnets"
+    Type: List<AWS::EC2::Subnet::Id>
+  DBUsername:
+    NoEcho: 'true'
+    Description: Username for MySQL database access
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBPassword:
+    NoEcho: 'true'
+    Description: Password MySQL database access
+    Type: String
+    MinLength: '8'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+
 Resources:
+  DanceDatabaseCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBClusterIdentifier: disco-serverless-db
+      Engine: aurora
+      EngineVersion: 5.6.10a
+      EngineMode: serverless
+      ScalingConfiguration:
+        AutoPause: true
+        MinCapacity: 4
+        MaxCapacity: 32
+        SecondsUntilAutoPause: 1000
+
+
   DiscoApiGateway:
     Type: AWS::Serverless::Api
     Properties:
@@ -28,12 +68,43 @@ Resources:
       CodeUri: disco_base/
       Handler: server_app.homepage
       Runtime: python3.8
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSg
+        SubnetIds: !Ref LambdaSubnets
       Events:
         HomePage:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             RestApiId: !Ref DiscoApiGateway
             Path: /
+            Method: get
+
+
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: disco_base/
+      Handler: server_app.hello_world
+      Runtime: python3.8
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSg
+        SubnetIds: !Ref LambdaSubnets
+      Events:
+        HelloWorld:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref DiscoApiGateway
+            Path: /hello_world
             Method: get
 
   ShowVideoFunction:
@@ -57,6 +128,11 @@ Resources:
       CodeUri: disco_base/
       Handler: server_app.list_videos
       Runtime: python3.8
+      Environment:
+        Variables:
+          DBUSERNAME: !Ref DBUsername
+          DBPASSWORD: !Ref DBPassword
+          DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
       Events:
         HomePage:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -65,6 +141,24 @@ Resources:
             Path: /video
             Method: get
 
+  InitDBFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: disco_base/
+      Handler: server_app.init_db
+      Runtime: python3.8
+      Policies:
+        - VPCAccessPolicy: {}
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSg
+        SubnetIds: !Ref LambdaSubnets
+      Environment:
+        Variables:
+          DBUSERNAME: !Ref DBUsername
+          DBPASSWORD: !Ref DBPassword
+          DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
+            
             
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

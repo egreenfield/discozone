@@ -1,10 +1,43 @@
 import boto3
+import botocore
 import json
 import re
+import os
 import datetime
+import logging
+import pymysql
+import sys
+
 from functools import reduce
 
-# import requests
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+##------------------------------------------------------------------------------------------------------------------------------
+## globals
+##------------------------------------------------------------------------------------------------------------------------------
+
+botoConfig = botocore.config.Config(s3={'addressing_style':'path'})
+s3 = boto3.resource('s3',config=botoConfig)
+
+dbUsername = os.environ['DBUSERNAME']
+dbPassword = os.environ['DBPASSWORD']
+dbConnection = os.environ['DBCONNECTION']
+
+try:
+    #logger.info(f'connecting with c:{dbConnection}, u:{dbUsername}, p:{dbPassword}')
+    conn = pymysql.connect(host=dbConnection, user=dbUsername, passwd=dbPassword, connect_timeout=2)
+except pymysql.MySQLError as e:
+    logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
+    logger.error(e)
+    sys.exit()
+logger.info("SUCCESS: Connection to RDS MySQL instance succeeded")
+
+
+
+##------------------------------------------------------------------------------------------------------------------------------
+## utility functions
+##------------------------------------------------------------------------------------------------------------------------------
 
 def nameToDate(name):
     m = re.search(r"videos/(\d*)_(\d*)_(\d*)_(\d*)_(\d*)_(\d*)",name)
@@ -19,22 +52,11 @@ def prettyDate(d):
 def show_video(event, context):
 
     videoName = event['pathParameters']['id']
-#    videoName = ""
     body = f'''<video controls>
                 <source src="http://disco-videos.s3-website-us-west-2.amazonaws.com/{videoName}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-            '''        
-
-    # print(f'event resource is: {event["resource"]}')
-    #  return {
-    #     "statusCode": 200,
-    #     "body": '',
-    #     "headers": {
-    #         "Content-Type": "application/json"
-    #     },
-    # }
-
+            '''       
     return {
         "statusCode": 200,
         "body": body,
@@ -42,6 +64,10 @@ def show_video(event, context):
             "Content-Type": "text/html"
         },
     }
+
+##------------------------------------------------------------------------------------------------------------------------------
+## HomePage
+##------------------------------------------------------------------------------------------------------------------------------
 
 def homepage(event, context):
     """Sample pure Lambda function
@@ -65,18 +91,9 @@ def homepage(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
 
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
-
 
     bucketName = "disco-videos"
 
-    s3 = boto3.resource('s3')
     body = ""
     bucket = s3.Bucket(bucketName)
     path = "http://disco-videos.s3-website-us-west-2.amazonaws.com/"
@@ -97,7 +114,6 @@ def homepage(event, context):
     files = map(lambda x: f'<a href="{path}{x[0]}">{prettyDate(x[1])}</a><br>',files)
     body = reduce(lambda a,b:a+b,files,"")
 
-
     return {
         "statusCode": 200,
         "body": body,
@@ -106,11 +122,34 @@ def homepage(event, context):
         },
     }
 
+##------------------------------------------------------------------------------------------------------------------------------
+## Hello World
+##------------------------------------------------------------------------------------------------------------------------------
+    
+
+def hello_world(event, context):
+    return {
+        "statusCode": 200,
+        "body": '["hello, world"]',
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Headers": 
+                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Methods": 
+                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+            "Access-Control-Allow-Origin": 
+                "*"
+        },
+    }
+
+##------------------------------------------------------------------------------------------------------------------------------
+## List Videos
+##------------------------------------------------------------------------------------------------------------------------------
+
 def list_videos(event, context):
 
     bucketName = "disco-videos"
 
-    s3 = boto3.resource('s3')
     body = ""
     bucket = s3.Bucket(bucketName)
     path = "http://disco-videos.s3-website-us-west-2.amazonaws.com/"
@@ -129,6 +168,51 @@ def list_videos(event, context):
     return {
         "statusCode": 200,
         "body": body,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Headers": 
+                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Methods": 
+                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+            "Access-Control-Allow-Origin": 
+                "*"
+        },
+    }
+
+
+##------------------------------------------------------------------------------------------------------------------------------
+## DB Init
+##------------------------------------------------------------------------------------------------------------------------------
+def init_db(event, context):
+
+    dbScript = '''
+        -- ****************** SqlDBM: MySQL ******************;
+        -- ***************************************************;
+        -- ************************************** `Dance`
+            CREATE DATABASE disco;
+            USE disco;
+            CREATE TABLE `Dance`
+            (
+            `Id`        int NOT NULL AUTO_INCREMENT ,
+            `time`      datetime NOT NULL ,
+            `favorite`  tinyint NOT NULL ,
+            `reviewed`  tinyint NOT NULL ,
+            `videofile` varchar(256),
+            `comments`  varchar(256),
+
+            PRIMARY KEY (`Id`)
+            ) AUTO_INCREMENT=1 COMMENT='Basic information 
+            about Customer';
+    '''    
+    logger.info("Connecting to DB")
+
+    with conn.cursor() as cur:
+        cur.execute(dbScript)
+
+    logger.info("SUCCESS Connected to DB")
+    return {
+        "statusCode": 200,
+        "body": "{}",
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Headers": 
