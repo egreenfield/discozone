@@ -17,6 +17,13 @@ Parameters:
   LambdaSubnets:
     Description: "Lambda subnets"
     Type: List<AWS::EC2::Subnet::Id>
+  DBName:
+    Description: Database name
+    Type: String
+    MinLength: '1'
+    MaxLength: '30'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
   DBUsername:
     NoEcho: 'true'
     Description: Username for MySQL database access
@@ -38,12 +45,14 @@ Resources:
   DanceDatabaseCluster:
     Type: 'AWS::RDS::DBCluster'
     Properties:
+      DatabaseName: !Ref DBName
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
-      DBClusterIdentifier: disco-serverless-db
+      DBClusterIdentifier: disco-db
       Engine: aurora
       EngineVersion: 5.6.10a
       EngineMode: serverless
+      EnableHttpEndpoint: true
       ScalingConfiguration:
         AutoPause: true
         MinCapacity: 4
@@ -99,6 +108,12 @@ Resources:
         SecurityGroupIds:
           - !Ref LambdaSg
         SubnetIds: !Ref LambdaSubnets
+      Environment:
+        Variables:
+          DBNAME: !Ref DBName
+          DBUSERNAME: !Ref DBUsername
+          DBPASSWORD: !Ref DBPassword
+          DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
       Events:
         HelloWorld:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -122,14 +137,15 @@ Resources:
             Path: /video/{id}
             Method: get
 
-  ListVideosFunction:
+  ListDancesFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: disco_base/
-      Handler: server_app.list_videos
+      Handler: server_app.list_dances
       Runtime: python3.8
       Environment:
         Variables:
+          DBNAME: !Ref DBName
           DBUSERNAME: !Ref DBUsername
           DBPASSWORD: !Ref DBPassword
           DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
@@ -138,7 +154,7 @@ Resources:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             RestApiId: !Ref DiscoApiGateway
-            Path: /video
+            Path: /dance
             Method: get
 
   InitDBFunction:
@@ -155,6 +171,7 @@ Resources:
         SubnetIds: !Ref LambdaSubnets
       Environment:
         Variables:
+          DBNAME: !Ref DBName
           DBUSERNAME: !Ref DBUsername
           DBPASSWORD: !Ref DBPassword
           DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address

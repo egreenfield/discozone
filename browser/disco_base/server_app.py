@@ -23,10 +23,11 @@ s3 = boto3.resource('s3',config=botoConfig)
 dbUsername = os.environ['DBUSERNAME']
 dbPassword = os.environ['DBPASSWORD']
 dbConnection = os.environ['DBCONNECTION']
+dbName = os.environ['DBNAME']
 
 try:
     #logger.info(f'connecting with c:{dbConnection}, u:{dbUsername}, p:{dbPassword}')
-    conn = pymysql.connect(host=dbConnection, user=dbUsername, passwd=dbPassword, connect_timeout=2)
+    conn = pymysql.connect(host=dbConnection, user=dbUsername, passwd=dbPassword, db=dbName, connect_timeout=2)
 except pymysql.MySQLError as e:
     logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
     logger.error(e)
@@ -146,28 +147,85 @@ def hello_world(event, context):
 ## List Videos
 ##------------------------------------------------------------------------------------------------------------------------------
 
-def list_videos(event, context):
+def list_dances(event, context):
+    dbScript = '''
+-- ****************** SqlDBM: MySQL ******************;
+-- ***************************************************;
+-- **************************************;
+SELECT * FROM Dance ORDER BY time;
+'''    
+    logger.info("Connecting to DB")
 
-    bucketName = "disco-videos"
+    with conn.cursor() as cur:
+        cur.execute(dbScript)
 
-    body = ""
-    bucket = s3.Bucket(bucketName)
-    path = "http://disco-videos.s3-website-us-west-2.amazonaws.com/"
-
-    # for object in bucket.objects.all():
-    #     body += f'<a href="http://disco-videos.s3-website-us-west-2.amazonaws.com/{object.key}<br>'
-
-    files = bucket.objects.filter(Prefix='videos/')
-    files = bucket.objects.all()
-#    files = map(lambda x: re.search(r"videos/(.*)\.mp4",x.key).group(1),files)
-    files = map(lambda x: {"key":x.key},files)
-#    files = sorted(files,reverse=True)
-    body = json.dumps(list(files))
-
-
+    logger.info("SUCCESS Connected to DB")
     return {
         "statusCode": 200,
-        "body": body,
+        "body": "{}",
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Headers": 
+                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Methods": 
+                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+            "Access-Control-Allow-Origin": 
+                "*"
+        },
+    }
+
+##------------------------------------------------------------------------------------------------------------------------------
+## create new dance
+##------------------------------------------------------------------------------------------------------------------------------
+
+def create_dance(event, context):
+    dbScript = '''
+-- ****************** SqlDBM: MySQL ******************;
+-- ***************************************************;
+-- **************************************;
+SELECT * FROM Dance ORDER BY time;
+'''    
+    logger.info("Connecting to DB")
+
+    with conn.cursor() as cur:
+        cur.execute(dbScript)
+
+    logger.info("SUCCESS Connected to DB")
+    return {
+        "statusCode": 200,
+        "body": "{}",
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Headers": 
+                "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Methods": 
+                "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+            "Access-Control-Allow-Origin": 
+                "*"
+        },
+    }
+
+
+##------------------------------------------------------------------------------------------------------------------------------
+## update dance
+##------------------------------------------------------------------------------------------------------------------------------
+
+def update_dance(event, context):
+    dbScript = '''
+-- ****************** SqlDBM: MySQL ******************;
+-- ***************************************************;
+-- **************************************;
+SELECT * FROM Dance ORDER BY time;
+'''    
+    logger.info("Connecting to DB")
+
+    with conn.cursor() as cur:
+        cur.execute(dbScript)
+
+    logger.info("SUCCESS Connected to DB")
+    return {
+        "statusCode": 200,
+        "body": "{}",
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Headers": 
@@ -186,24 +244,22 @@ def list_videos(event, context):
 def init_db(event, context):
 
     dbScript = '''
-        -- ****************** SqlDBM: MySQL ******************;
-        -- ***************************************************;
-        -- ************************************** `Dance`
-            CREATE DATABASE disco;
-            USE disco;
-            CREATE TABLE `Dance`
-            (
-            `Id`        int NOT NULL AUTO_INCREMENT ,
-            `time`      datetime NOT NULL ,
-            `favorite`  tinyint NOT NULL ,
-            `reviewed`  tinyint NOT NULL ,
-            `videofile` varchar(256),
-            `comments`  varchar(256),
+-- ****************** SqlDBM: MySQL ******************;
+-- ***************************************************;
+-- **************************************;
+CREATE TABLE IF NOT EXISTS `Dance`
+(
+`Id`        int NOT NULL AUTO_INCREMENT ,
+`time`      datetime NOT NULL ,
+`favorite`  tinyint NOT NULL ,
+`reviewed`  tinyint NOT NULL ,
+`videofile` varchar(256),
+`comments`  varchar(256),
 
-            PRIMARY KEY (`Id`)
-            ) AUTO_INCREMENT=1 COMMENT='Basic information 
-            about Customer';
-    '''    
+PRIMARY KEY (`Id`)
+) AUTO_INCREMENT=1 COMMENT='Basic information 
+about Customer';
+'''    
     logger.info("Connecting to DB")
 
     with conn.cursor() as cur:
