@@ -1,9 +1,10 @@
 import pymysql
 from pymysql.constants import CLIENT
 import logging
-import random
+from pypika import MySQLQuery as Query, Table, Field
 
-logger = logging.getLogger()
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -53,6 +54,27 @@ class DiscoDB:
             cur.execute("SELECT * FROM `Dance` where id = LAST_INSERT_ID()")
             rows = cur.fetchall()
             return rows[0]
+
+    def updateDance(self,danceID,properties):
+
+        properties.pop("id",None)
+        t = Table("Dance")
+        q = Query.update(t)
+        for aKey in properties:
+            q = q.set(aKey,properties[aKey])
+        q = q.where(t.id == danceID)
+        print(f'executing update string: {str(q)}')
+        with self.connection.cursor() as cur:
+            #TODO combine these into single atomic statement?
+            cur.execute(str(q))            
+            rowCount = cur.execute(f'SELECT * FROM `Dance` where id = {danceID}')
+            if (rowCount):
+                rows = cur.fetchall()
+                return rows[0]
+            else:    
+                return None
+
+
 
     def resetTables(self):
         dbScript = '''

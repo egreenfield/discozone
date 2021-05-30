@@ -222,18 +222,22 @@ def create_dance(event, context):
 ##------------------------------------------------------------------------------------------------------------------------------
 
 def update_dance(event, context):
-    dbScript = '''
-SELECT * FROM Dance ORDER BY time;
-'''    
-    logger.info("Connecting to DB")
 
-    with conn.cursor() as cur:
-        cur.execute(dbScript)
+    requestBody = event['body']
+    logger.info(f'updating with body {requestBody}')
+    id = event['pathParameters']['id']
+    updateProps = json.loads(requestBody)
+    newRow = db.updateDance(id,updateProps)
+    [newDance,result] = ["",-1] if newRow == None else [newRow,0]
 
-    logger.info("SUCCESS Connected to DB")
+    body = toJson({
+        "result":result,
+        "dance": newDance
+    })
+
     return {
         "statusCode": 200,
-        "body": "{}",
+        "body": body,
         "headers": jsonHeaders,
     }
 
