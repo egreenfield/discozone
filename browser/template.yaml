@@ -110,8 +110,6 @@ Resources:
       Handler: server_app.hello_world
       Policies:
         - VPCAccessPolicy: {}
-        - S3FullAccessPolicy:
-            BucketName: "*"
       Events:
         HelloWorld:
           Type: Api 
@@ -144,8 +142,6 @@ Resources:
       Handler: server_app.list_dances
       Policies:
         - VPCAccessPolicy: {}
-        - S3FullAccessPolicy:
-            BucketName: "*"
       Events:
         ListDances:
           Type: Api 
@@ -176,8 +172,6 @@ Resources:
       Handler: server_app.create_dance
       Policies:
         - VPCAccessPolicy: {}
-        - S3FullAccessPolicy:
-            BucketName: "*"
       Events:
         CreateDance:
           Type: Api 
@@ -193,8 +187,6 @@ Resources:
       Handler: server_app.update_dance
       Policies:
         - VPCAccessPolicy: {}
-        - S3FullAccessPolicy:
-            BucketName: "*"
       Events:
         CreateDance:
           Type: Api
@@ -210,8 +202,6 @@ Resources:
       Handler: server_app.delete_dance
       Policies:
         - VPCAccessPolicy: {}
-        - S3FullAccessPolicy:
-            BucketName: "*"
       Events:
         CreateDance:
           Type: Api
@@ -227,8 +217,6 @@ Resources:
       Handler: server_app.init_db
       Policies:
         - VPCAccessPolicy: {}
-        - S3FullAccessPolicy:
-            BucketName: "*"
 
   # ReflectFunction:
   #   Type: AWS::Serverless::Function

@@ -116,6 +116,15 @@ class DiscoDB:
             else:    
                 return None
 
+    def deleteDance(self,danceID):
+
+        t = Table("Dance")
+        q = Query.from_(t).where(t.id == danceID).delete()
+        with self.connection.cursor() as cur:
+            logger.info(f'executing delete string: {str(q)}')
+            rowCount = cur.execute(str(q))          
+            return 0 if rowCount > 0 else -1
+
     def resetTables(self):
         dbScript = '''
 

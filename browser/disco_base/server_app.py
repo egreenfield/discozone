@@ -247,18 +247,16 @@ def update_dance(event, context):
 ##------------------------------------------------------------------------------------------------------------------------------
 
 def delete_dance(event, context):
-    dbScript = '''
-SELECT * FROM Dance ORDER BY time;
-'''    
-    logger.info("Connecting to DB")
 
-    with conn.cursor() as cur:
-        cur.execute(dbScript)
+    id = event['pathParameters']['id']
+    result = db.deleteDance(id)
+    body = toJson({
+        "result":result
+    })
 
-    logger.info("SUCCESS Connected to DB")
     return {
         "statusCode": 200,
-        "body": "{}",
+        "body": body,
         "headers": jsonHeaders,
     }
 
