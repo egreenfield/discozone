@@ -10,11 +10,13 @@ class Config:
     video:bool = True    
     silentWhenAlone:bool = False
     videoStorage:str = None
+    commandMethod:str = "get"
+    eventMethod:str = "get"
     deviceConfig:dict = field(default_factory=dict)
     # followers:list = field(default_factory=list)
     leader:str = None
     deviceMap = None
-
+    
 
 
     # def loadConfig(self,name,data,configName = None):
@@ -47,6 +49,10 @@ class Config:
                     f.deviceConfig = configData['devices']
                 if 'leader' in configData:
                     f.leader = configData['leader']
+                if 'commandMethod' in configData:
+                    f.commandMethod = configData['commandMethod']
+                if 'eventMethod' in configData:
+                    f.eventMethod = configData['eventMethod']
                 
         return f
 
@@ -64,5 +70,5 @@ class Config:
             if('class' in aDevice):
                 device.setClass(aDevice['class'])
             if('config' in aDevice):
-                device.setConfig(aDevice['config'])
+                device.setConfig(aDevice['config'],config)
             deviceMgr.addDevice(device)

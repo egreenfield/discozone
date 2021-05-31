@@ -53,11 +53,14 @@ class App:
 #
 
 
-    def handleEvent(self,device,event,data):
+    def handleEvent(self,event):
         if (self.config.leader == None):
             self.machine.addEvent(event)
         else:
-            self.remote.request(f'http://{self.config.leader}:8000/event/{event}')
+            if(self.config.eventMethod == "get"):
+                self.remote.getUrl(f'http://{self.config.leader}:8000/event/{event["name"]}')
+            else:
+                self.remote.putUrl(f'http://{self.config.leader}:8000/event',event)
 
     def setup(self):
 
@@ -66,7 +69,7 @@ class App:
 
         self.remote = Remote()
         self.deviceMgr = devices.DeviceManager(self.remote)
-        self.deviceMgr.setEventHandler(lambda device, event, data : self.handleEvent(device,event,data))
+        self.deviceMgr.setEventHandler(lambda event : self.handleEvent(event))
         Config.loadDevicesFromConfigData(self.config,self.deviceMgr)
         self.deviceMgr.initDevices()
 

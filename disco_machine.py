@@ -24,7 +24,7 @@ class DiscoMachine(StateMachine):
                     Events.RemoteStart: State.PLAYING
                 },
                 State.PLAYING: {
-                    SonarEvent.PERSON_LEFT: lambda f,t : State.LOOKING if config.silentWhenAlone else None,
+                    SonarEvent.PERSON_LEFT: lambda f,t,e : State.LOOKING if config.silentWhenAlone else None,
                     TapedeckEvent.SONG_STOPPED: State.CLEARING,
                     Events.RemoteStop: State.LOOKING,
                 },
@@ -34,9 +34,9 @@ class DiscoMachine(StateMachine):
             },
             actions = {
                 '': {
-                    State.PLAYING: lambda : self.startDiscoSession(),
-                    State.CLEARING: lambda : self.startClearing(),
-                    State.LOOKING: lambda : self.endDiscoSession(),
+                    State.PLAYING: lambda e,s,o : self.startDiscoSession(),
+                    State.CLEARING: lambda e,s,o : self.startClearing(),
+                    State.LOOKING: lambda e,s,o : self.endDiscoSession(),
                 }
             }
         )

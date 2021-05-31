@@ -15,17 +15,6 @@ log = logging.getLogger(__name__)
 
 
 
-class RemoteEvent:
-    def __init__(self,event,machine):
-        self.event = event
-        self.machine = machine
-
-    def on_get(self, req, resp):
-        """Handles GET requests"""
-        resp.status = falcon.HTTP_200  # This is the default status
-        resp.text = ('{}')
-        self.machine.addEvent(self.event)        
-
 
 class WebEventHandler():
     def __init__(self,device):
@@ -36,7 +25,17 @@ class WebEventHandler():
         resp.status = falcon.HTTP_200  # This is the default status
         resp.text = ('{}')
         self.device.raiseEvent(eventName)            
-        
+
+class WebEventHandler2():
+    def __init__(self,deviceMgr):
+        self.deviceMgr = deviceMgr
+
+    def on_post(self,req,resp):
+        resp.status = falcon.HTTP_200  # This is the default status        
+        resp.text = ('{}')
+        eventBody = req.get_media()
+        print(f'event body is of type {type(eventBody)}: {eventBody}')
+
 class WebCommandHandler():
     def __init__(self,deviceMgr):
         self.deviceMgr = deviceMgr
@@ -132,13 +131,11 @@ class RestService:
         self.machine = machine
         self.app = falcon.App()
 
-        self.app.add_route('/start', RemoteEvent(disco.Events.RemoteStart,machine))
-        self.app.add_route('/stop', RemoteEvent(disco.Events.RemoteStop,machine))
-
         webDevice = devices.Device()
         webDevice.setClass("api")
         deviceMgr.addDevice(webDevice)
         self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
+        self.app.add_route('/event', WebEventHandler2(deviceMgr))
 
         self.app.add_route('/command/{deviceClass}/{deviceId}/{commandName}', WebCommandHandler(deviceMgr))
 

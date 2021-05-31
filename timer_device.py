@@ -13,8 +13,8 @@ class TimerDevice(devices.Device):
         devices.Device.__init__(self)
         self.duration = 10
 
-    def setConfig(self,config):
-        devices.Device.setConfig(self,config)
+    def setConfig(self,config,globalConfig):
+        devices.Device.setConfig(self,config,globalConfig)
         if('duration' in config):
             self.duration = config['duration']
 

@@ -111,8 +111,8 @@ class Sonar(devices.Device):
         self.watcher = WatchingThread(self)
         self.watcher.start()
 
-    def setConfig(self,config):
-        devices.Device.setConfig(self,config)
+    def setConfig(self,config,globalConfig):
+        devices.Device.setConfig(self,config,globalConfig)
         if('detectionDistance' in config):
             self.detectionDistance = config['detectionDistance']
         if('minimumDistance' in config):

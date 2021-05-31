@@ -107,8 +107,8 @@ class VideoRecorder(devices.Device):
         devices.Device.__init__(self)
         self.remoteStorage = None
 
-    def setConfig(self,config):
-        devices.Device.setConfig(self,config)
+    def setConfig(self,config,globalConfig):
+        devices.Device.setConfig(self,config,globalConfig)
         if('localStorage' in config):
             self.localStorage = config['localStorage']
         if('deleteOnUpload' in config):

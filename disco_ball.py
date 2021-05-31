@@ -46,8 +46,8 @@ class DiscoBall (devices.Device):
     def stop(self):
         self.motor(128)
 
-    def setConfig(self,config):
-        devices.Device.setConfig(self,config)
+    def setConfig(self,config,globalConfig):
+        devices.Device.setConfig(self,config,globalConfig)
         if('power' in config):
             self.power = config['power']
 
