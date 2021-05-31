@@ -38,9 +38,11 @@ class DiscoDB:
             rows = cur.fetchall()
             return rows
 
-    def getDanceById(self,id):
+    def getDanceById(self,danceID):
+        t = Table("Dance")
+        q = Query.from_(t).where(t.id == danceID).select("*")
         with self.connection.cursor() as cur:
-            rowCount = cur.execute(f'SELECT * FROM Dance WHERE id = {id}')
+            rowCount = cur.execute(str(q))
             if(rowCount > 0):
                 return cur.fetchone()
             else:
@@ -128,10 +130,12 @@ class DiscoDB:
     def resetTables(self):
         dbScript = '''
 
-        DROP TABLE IF EXISTS Dance;
+use dancedb;
+
+        DROP TABLE IF EXISTS `Dance`;
         CREATE TABLE IF NOT EXISTS `Dance`
         (
-        `id`        char(36) NOT NULL ,
+        `id`        char(36) DEFAULT "" NOT NULL ,
         `time`      datetime DEFAULT NOW(),
         `favorite`  tinyint DEFAULT 0,
         `reviewed`  tinyint DEFAULT 0,
@@ -146,14 +150,13 @@ class DiscoDB:
         BEFORE INSERT ON `Dance`
         FOR EACH ROW
         BEGIN
-        IF new.id IS NULL THEN
+        IF new.id = "" THEN
             SET new.id = uuid();
         END IF;
         END
         ;;
 
         DELIMITER ;
-
         '''    
         with self.connection.cursor() as cur:
             cur.execute(dbScript)

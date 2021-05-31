@@ -1,6 +1,6 @@
 
 Tasks:
-* fix db init script
+* automated tests
 * cloudformation/sam script for VPC (https://docs.aws.amazon.com/codebuild/latest/userguide/cloudformation-vpc-template.html, https://github.com/awsdocs/aws-lambda-developer-guide/blob/main/templates/vpc-privatepublic.yaml)
 * add dance database (id, video, time, samples, reviewed, favorited valid)
 * add delete dance
