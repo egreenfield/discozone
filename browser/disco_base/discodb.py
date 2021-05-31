@@ -47,7 +47,28 @@ class DiscoDB:
                 return None
 
 
-    def createDance(self):    
+    def createDance(self,danceID = None,properties = None):    
+        if (properties != None):
+            properties.pop("id",None)        
+        t = Table("Dance")
+        if(danceID == None):
+            q = Query.into(t).columns(*properties.keys()).insert(*properties.values())
+        else:
+            q = Query.into(t).columns("id",*properties.keys()).insert(danceID,*properties.values())
+        print(f'executing insert string: {str(q)}')
+        with self.connection.cursor() as cur:
+            #TODO combine these into single atomic statement?
+            cur.execute(str(q))            
+            if(danceID != None):
+                rowCount = cur.execute(Query.from(t).select("*").where(id == danceID).get_sql())
+            else:
+                rowCount = cur.execute(Query.from(t).select("*").where(id == LAST_INSERT_ID()).get_sql())
+            if (rowCount):
+                rows = cur.fetchall()
+                return rows[0]
+            else:    
+                return None
+
         with self.connection.cursor() as cur:
             #TODO combine these into single atomic statement?
             cur.execute(f'INSERT INTO `Dance` () VALUES ()')            
@@ -74,14 +95,31 @@ class DiscoDB:
             else:    
                 return None
 
+    def upsertDance(self,danceID,properties):
 
+        properties.pop("id",None)        
+        t = Table("Dance")
+        q = Query.into(t).columns("id",*properties.keys()).insert(danceID,*properties.values())
+        for aKey in properties:
+            q = q.on_duplicate_key_update(aKey,properties[aKey])
+        print(f'executing insert string: {str(q)}')
+        with self.connection.cursor() as cur:
+            #TODO combine these into single atomic statement?
+            cur.execute(str(q))            
+            rowCount = cur.execute(f'SELECT * FROM `Dance` where id = {danceID}')
+            if (rowCount):
+                rows = cur.fetchall()
+                return rows[0]
+            else:    
+                return None
 
     def resetTables(self):
         dbScript = '''
+
         DROP TABLE IF EXISTS Dance;
         CREATE TABLE IF NOT EXISTS `Dance`
         (
-        `Id`        int NOT NULL AUTO_INCREMENT ,
+        `id`        char(36) NOT NULL ,
         `time`      datetime DEFAULT NOW(),
         `favorite`  tinyint DEFAULT 0,
         `reviewed`  tinyint DEFAULT 0,
@@ -89,8 +127,21 @@ class DiscoDB:
         `comments`  varchar(256) DEFAULT "",
 
         PRIMARY KEY (`Id`)
-        ) AUTO_INCREMENT=1 COMMENT='Basic information 
-        about Customer';
+        );
+
+        DELIMITER ;;
+        CREATE TRIGGER before_insert_tablename
+        BEFORE INSERT ON `Dance`
+        FOR EACH ROW
+        BEGIN
+        IF new.id IS NULL THEN
+            SET new.id = uuid();
+        END IF;
+        END
+        ;;
+
+        DELIMITER ;
+
         '''    
         with self.connection.cursor() as cur:
             cur.execute(dbScript)

@@ -183,7 +183,7 @@ def get_dance(event, context):
     danceId = event['pathParameters']['id']
 
     result = 0
-    row = db.getDanceById(int(danceId))
+    row = db.getDanceById(danceId)
     if(row == None):
         row = {}
         result = -1
@@ -227,7 +227,7 @@ def update_dance(event, context):
     logger.info(f'updating with body {requestBody}')
     id = event['pathParameters']['id']
     updateProps = json.loads(requestBody)
-    newRow = db.updateDance(id,updateProps)
+    newRow = db.upsertDance(id,updateProps)
     [newDance,result] = ["",-1] if newRow == None else [newRow,0]
 
     body = toJson({
