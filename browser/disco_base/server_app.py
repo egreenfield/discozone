@@ -274,3 +274,16 @@ def init_db(event, context):
         "body": "{}",
         "headers": jsonHeaders,
     }
+
+
+# def reflect_params(event,context):
+#     body = json.dumps({
+#         "event":event
+#     })
+
+#     return {
+#         "statusCode": 200,
+#         "body": body,
+#         "headers": jsonHeaders,
+#     }
+

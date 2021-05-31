@@ -4,8 +4,8 @@ import logging
 from pypika import MySQLQuery as Query, Table, Field
 
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 class DiscoDB:
@@ -60,9 +60,9 @@ class DiscoDB:
             #TODO combine these into single atomic statement?
             cur.execute(str(q))            
             if(danceID != None):
-                rowCount = cur.execute(Query.from(t).select("*").where(id == danceID).get_sql())
+                rowCount = cur.execute(Query.from_(t).select("*").where(id == danceID).get_sql())
             else:
-                rowCount = cur.execute(Query.from(t).select("*").where(id == LAST_INSERT_ID()).get_sql())
+                rowCount = cur.execute(Query.from_(t).select("*").where(id == LAST_INSERT_ID()).get_sql())
             if (rowCount):
                 rows = cur.fetchall()
                 return rows[0]
@@ -100,13 +100,16 @@ class DiscoDB:
         properties.pop("id",None)        
         t = Table("Dance")
         q = Query.into(t).columns("id",*properties.keys()).insert(danceID,*properties.values())
+        q = q.on_duplicate_key_update("id",danceID)
         for aKey in properties:
             q = q.on_duplicate_key_update(aKey,properties[aKey])
-        print(f'executing insert string: {str(q)}')
         with self.connection.cursor() as cur:
             #TODO combine these into single atomic statement?
-            cur.execute(str(q))            
-            rowCount = cur.execute(f'SELECT * FROM `Dance` where id = {danceID}')
+            logger.info(f'executing insert string: {str(q)}')
+            cur.execute(str(q))          
+            q = Query.from_(t).select('*').where(t.id == danceID)
+            logger.info(f'executing {str(q)}')  
+            rowCount = cur.execute(str(q))
             if (rowCount):
                 rows = cur.fetchall()
                 return rows[0]

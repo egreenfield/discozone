@@ -41,7 +41,7 @@ Parameters:
     # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 6
     CodeUri: disco_base/
     Runtime: python3.8
     Environment:
@@ -223,19 +223,27 @@ Resources:
   InitDBFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: db-reset
+      FunctionName: util-db-reset
       Handler: server_app.init_db
       Policies:
         - VPCAccessPolicy: {}
         - S3FullAccessPolicy:
             BucketName: "*"
-      Environment:
-        Variables:
-          DBNAME: !Ref DBName
-          DBUSERNAME: !Ref DBUsername
-          DBPASSWORD: !Ref DBPassword
-          DBCONNECTION: !GetAtt DanceDatabaseCluster.Endpoint.Address
-            
+
+  # ReflectFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     FunctionName: util-reflect
+  #     Handler: server_app.reflect_params
+  #     Policies:
+  #       - VPCAccessPolicy: {}
+  #     Events:
+  #       ReflectEvent:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref DiscoApiGateway
+  #           Path: /util/reflect
+  #           Method: get
  
           
 
