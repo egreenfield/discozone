@@ -38,8 +38,8 @@ class PlaybackThread (threading.Thread):
 
 
 class Tapedeck(devices.Device):
-    def __init__(self):
-        devices.Device.__init__(self)
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
         self.thread = None
 
     def onCommand(self,cmd,data = None):

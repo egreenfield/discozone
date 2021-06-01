@@ -22,8 +22,8 @@ class DiscoBallCommand:
 
 class DiscoBall (devices.Device):
 
-    def __init__(self):
-        devices.Device.__init__(self)
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
         self.power = MOTOR_SPEED
 
     def onCommand(self,cmd,data = None):

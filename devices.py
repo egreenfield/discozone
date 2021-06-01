@@ -5,7 +5,7 @@ log = logging.getLogger(__name__)
 
 class Device:
     id = None
-    def __init__(self):
+    def __init__(self,app):
         self.id = str(uuid4())
         self.className = "generic"
         None

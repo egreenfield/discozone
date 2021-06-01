@@ -47,7 +47,8 @@ class App:
     remote: Remote = None
     running:bool = True
     config:Config = None
-
+    danceClient:DanceClient = None
+    
 ################################################################################################
 # 
 # General
@@ -71,7 +72,7 @@ class App:
             self.danceClient.setConfig(self.config.serverConfig) 
         self.deviceMgr = devices.DeviceManager(self.remote)
         self.deviceMgr.setEventHandler(lambda event : self.handleEvent(event))
-        Config.loadDevicesFromConfigData(self.config,self.deviceMgr)
+        Config.loadDevicesFromConfigData(self.config,self)
         self.deviceMgr.initDevices()
 
         if(self.config.leader == None):

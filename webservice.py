@@ -136,10 +136,6 @@ class RestService:
         self.machine = machine
         self.app = falcon.App()
 
-        webDevice = devices.Device()
-        webDevice.setClass("api")
-        deviceMgr.addDevice(webDevice)
-#        self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
         self.app.add_route('/event', WebEventHandler2(deviceMgr))
 
         self.app.add_route('/command', WebCommandHandler(deviceMgr))

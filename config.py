@@ -52,13 +52,15 @@ class Config:
 
 
     @classmethod
-    def loadDevicesFromConfigData(cls,config,deviceMgr):
+    def loadDevicesFromConfigData(cls,config,app):
         deviceConfig = config.deviceConfig
+        deviceMgr = app.deviceMgr
+
         for aDevice in deviceConfig:
             if ('enabled' in aDevice and aDevice['enabled'] == False):
                 continue
             typeName = aDevice['type']
-            device = cls.deviceMap[typeName]()
+            device = cls.deviceMap[typeName](app)
             if ('id' in aDevice):
                 device.setId(aDevice['id'])
             if('class' in aDevice):

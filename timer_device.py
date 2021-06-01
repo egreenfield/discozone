@@ -9,8 +9,8 @@ class TimerCommand:
 
 class TimerDevice(devices.Device):
 
-    def __init__(self):
-        devices.Device.__init__(self)
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
         self.duration = 10
 
     def setConfig(self,config,globalConfig):

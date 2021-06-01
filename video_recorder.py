@@ -21,7 +21,7 @@ class PackagerThread (threading.Thread):
         self.completedVideos = deque()
 
     def run(self):
-        self.findOldJobs()
+#        self.findOldJobs()
         while(True):
             videoName = None
             with self.lock:
@@ -59,7 +59,7 @@ class PackagerThread (threading.Thread):
             if(uploaded == True and self.recorder.deleteOnUpload):
                 os.remove(mp4Name)             
                 videoRemoved = True
-        self.danceClient.registerDanceVideo(danceID,remoteVideoFilename)
+        self.recorder.danceClient.registerDanceVideo(danceID,remoteVideoFilename)
         
         if(videoRemoved):
             return
@@ -109,9 +109,10 @@ class VideoRecorder(devices.Device):
     twilioId = ""
     twilioToken = ""
 
-    def __init__(self):
-        devices.Device.__init__(self)
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
         self.remoteStorage = None
+        self.danceClient = app.danceClient
 
     def setConfig(self,config,globalConfig):
         devices.Device.setConfig(self,config,globalConfig)

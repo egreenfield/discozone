@@ -100,8 +100,8 @@ class Sonar(devices.Device):
     state = SonarState.Clear
     debounceRate = DEFAULT_DEBOUNCE_RATE
 
-    def __init__(self):
-        devices.Device.__init__(self)
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
 
     def init(self):
         GPIO.setmode(GPIO.BOARD)      # use PHYSICAL GPIO Numbering
