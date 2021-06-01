@@ -16,3 +16,7 @@ class DanceClient():
         log.info(f'registering new dance at {url}')
         self.remote.putRequest(url,{})
 
+    def registerDanceVideo(self,id,remoteVideoFilename):
+        url = f'{self.endpoint}/dance/{id}'
+        log.info(f'registering video at {url}')
+        self.remote.putRequest(url,{"videofile":remoteVideoFilename})
