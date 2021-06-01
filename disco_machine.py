@@ -44,14 +44,17 @@ class DiscoMachine(StateMachine):
 
     def startDiscoSession(self,event):
         log.info(f'STARTING disco state with event {event}')
+        danceID = event['id']
         if(self.danceClient):
-            self.danceClient.registerNewDance(event['id'])
+            self.danceClient.registerNewDance(danceID)
         if(self.config.ball):
             self.deviceMgr.sendCommand("ball",DiscoBallCommand.SPIN)
         if(self.config.music):
             self.deviceMgr.sendCommand("audio",TapedeckCommand.START)
         if(self.config.video):
-            self.deviceMgr.sendCommand("video",VideoRecorderCommand.START)
+            self.deviceMgr.sendCommand("video",VideoRecorderCommand.START,data={
+                "danceID":danceID
+            })
 
     def startClearing(self):
         self.endDiscoSession()
