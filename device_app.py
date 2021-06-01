@@ -60,7 +60,7 @@ class App:
             if(self.config.eventMethod == "get"):
                 self.remote.getUrl(f'http://{self.config.leader}:8000/event/{event["name"]}')
             else:
-                self.remote.putUrl(f'http://{self.config.leader}:8000/event',event)
+                self.remote.postUrl(f'http://{self.config.leader}:8000/event',event)
 
     def setup(self):
 
