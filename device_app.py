@@ -14,6 +14,7 @@ from disco_ball import DiscoBall
 from sonar import Sonar
 from devices import RemoteDevice
 from timer_device import TimerDevice
+from dance_client import DanceClient
 
 
 from config import Config
@@ -68,13 +69,16 @@ class App:
         self.config = Config.load('config.json')
 
         self.remote = Remote()
+        self.danceClient = DanceClient(self.remote)
+        if self.config.serverConfig != None:
+            self.danceClient.setConfig(self.config.serverConfig) 
         self.deviceMgr = devices.DeviceManager(self.remote)
         self.deviceMgr.setEventHandler(lambda event : self.handleEvent(event))
         Config.loadDevicesFromConfigData(self.config,self.deviceMgr)
         self.deviceMgr.initDevices()
 
         if(self.config.leader == None):
-            self.machine = DiscoMachine(self.config,self.deviceMgr)    
+            self.machine = DiscoMachine(self.config,self.deviceMgr,self.danceClient)    
             self.machine.setup()
 
 
@@ -104,7 +108,7 @@ app = App()
 
 if __name__ == '__main__':     # Program entrance
 
-    logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"),
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"),
         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         datefmt='%H:%M:%S')
     # fh = logging.FileHandler('logs/discoOutput.txt')

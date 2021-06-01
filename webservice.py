@@ -33,8 +33,8 @@ class WebEventHandler2():
     def on_post(self,req,resp):
         resp.status = falcon.HTTP_200  # This is the default status        
         resp.text = ('{}')
-        eventBody = req.get_media()
-        print(f'event body is of type {type(eventBody)}: {eventBody}')
+        eventBody = req.media
+        self.deviceMgr.raiseEvent(eventBody)
 
 class WebCommandHandler():
     def __init__(self,deviceMgr):
@@ -134,7 +134,7 @@ class RestService:
         webDevice = devices.Device()
         webDevice.setClass("api")
         deviceMgr.addDevice(webDevice)
-        self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
+#        self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
         self.app.add_route('/event', WebEventHandler2(deviceMgr))
 
         self.app.add_route('/command/{deviceClass}/{deviceId}/{commandName}', WebCommandHandler(deviceMgr))
@@ -149,7 +149,6 @@ class RestService:
     def start(self):
         print('Serving on port 8000...')
         videoPath = os.path.join(os.path.dirname(__file__),"videos")
-        print(f'video path is {videoPath}')
         run_simple('', 8000, self.app, use_reloader=False, threaded=True,static_files={
                 '/videos': videoPath
             })

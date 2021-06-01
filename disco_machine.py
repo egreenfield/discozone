@@ -11,10 +11,11 @@ log = logging.getLogger(__name__)
 
 class DiscoMachine(StateMachine):
     
-    def __init__(self,config,deviceMgr,transitions = {},actions = {}):
+    def __init__(self,config,deviceMgr,danceClient):
         
         self.config = config
         self.deviceMgr = deviceMgr
+        self.danceClient = danceClient
 
         StateMachine.__init__(self,
             initialState = State.LOOKING,
@@ -34,14 +35,17 @@ class DiscoMachine(StateMachine):
             },
             actions = {
                 '': {
-                    State.PLAYING: lambda e,s,o : self.startDiscoSession(),
+                    State.PLAYING: lambda event,s,o : self.startDiscoSession(event),
                     State.CLEARING: lambda e,s,o : self.startClearing(),
                     State.LOOKING: lambda e,s,o : self.endDiscoSession(),
                 }
             }
         )
 
-    def startDiscoSession(self):
+    def startDiscoSession(self,event):
+        log.info(f'STARTING disco state with event {event}')
+        if(self.danceClient):
+            self.danceClient.registerNewDance(event['id'])
         if(self.config.ball):
             self.deviceMgr.sendCommand("ball",DiscoBallCommand.SPIN)
         if(self.config.music):
