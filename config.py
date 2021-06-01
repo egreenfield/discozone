@@ -10,7 +10,6 @@ class Config:
     video:bool = True    
     silentWhenAlone:bool = False
     videoStorage:str = None
-    commandMethod:str = "get"
     eventMethod:str = "post"
     deviceConfig:dict = field(default_factory=dict)
     # followers:list = field(default_factory=list)
@@ -48,10 +47,6 @@ class Config:
                     f.deviceConfig = configData['devices']
                 if 'leader' in configData:
                     f.leader = configData['leader']
-                if 'commandMethod' in configData:
-                    f.commandMethod = configData['commandMethod']
-                if 'eventMethod' in configData:
-                    f.eventMethod = configData['eventMethod']
                 f.serverConfig = configData.get('serverConfig')
         return f
 
