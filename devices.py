@@ -46,18 +46,14 @@ class RemoteDevice(Device):
 
     def setConfig(self,config,globalConfig):
         self.location = config['location']
-        self.method = globalConfig.commandMethod
 
     def onCommand(self,cmd,data = {}):
-        if(self.method == "get"):
-            self.mgr.remote.getUrl(f'http://{self.location}:8000/command/{self.className}/{self.id}/{cmd}')
-        else:
-            self.mgr.remote.postUrl(f'http://{self.location}:8000/command',{
-                "className":self.className,
-                "id":self.id,
-                "command":cmd,
-                "data":data
-            })
+        self.mgr.remote.postUrl(f'http://{self.location}:8000/command',{
+            "className":self.className,
+            "id":self.id,
+            "command":cmd,
+            "data":data
+        })
 
 
 class DeviceManager:
