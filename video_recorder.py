@@ -144,7 +144,7 @@ class VideoRecorder(devices.Device):
     def start(self):
         now = datetime.datetime.now()
         self.currentVideoName =  now.strftime("%Y_%m_%d_%H_%M_%S")
-        print(f'video name is {self.currentVideoName}')
+        log.info(f'video name is {self.currentVideoName}')
         if(self.flip):
             opts = ['raspivid', '--vflip','--hflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
         else:

@@ -1,5 +1,7 @@
 import RPi.GPIO as GPIO
 import devices
+import logging
+log = logging.getLogger(__name__)
 
 MOTOR_SPEED = 100
 
@@ -40,7 +42,7 @@ class DiscoBall (devices.Device):
         self.p.start(0)
 
     def spin(self):
-        print(f'running ball at {self.power}')
+        log.debug(f'running ball at {self.power}')
         self.motor(128 + 128 * self.power/100.0)
 
     def stop(self):

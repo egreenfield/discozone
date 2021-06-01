@@ -13,12 +13,9 @@ class S3Storage:
         self.client = None
 
     def setConfig(self,config):
-        if('bucketName' in config):
-            self.bucketName = config['bucketName']
-        if('accessKey' in config):
-            self.accessKey = config['accessKey']
-        if('secretKey' in config):
-            self.accessKey = config['secretKey']
+            self.bucketName = config.get('bucketName',self.bucketName)
+            self.accessKey = config.get('accessKey',self.accessKey)
+            self.secretKey = config.get('secretKey',self.secretKey)
 
     def createClient(self):
         myConfig = Config(

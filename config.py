@@ -11,7 +11,7 @@ class Config:
     silentWhenAlone:bool = False
     videoStorage:str = None
     commandMethod:str = "get"
-    eventMethod:str = "get"
+    eventMethod:str = "post"
     deviceConfig:dict = field(default_factory=dict)
     # followers:list = field(default_factory=list)
     leader:str = None
@@ -21,7 +21,6 @@ class Config:
 
     # def loadConfig(self,name,data,configName = None):
     #     srcName = configName or name
-    #     print(f'lc {name} {configName} {srcName}')
     #     if name in data:
     #         setattr(self,name,data[srcName])
 
@@ -53,7 +52,7 @@ class Config:
                     f.commandMethod = configData['commandMethod']
                 if 'eventMethod' in configData:
                     f.eventMethod = configData['eventMethod']
-                
+                f.serverConfig = configData.get('serverConfig')
         return f
 
 
