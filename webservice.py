@@ -41,10 +41,15 @@ class WebCommandHandler():
         self.deviceMgr = deviceMgr
 
     def on_get(self, req, resp,deviceClass,deviceId,commandName):
-        """Handles GET requests"""
         resp.status = falcon.HTTP_200  # This is the default status
         resp.text = ('{}')
         self.deviceMgr.execRemoteCommand(deviceClass,commandName,deviceId)           
+
+    def on_post(self, req, resp):
+        resp.status = falcon.HTTP_200  # This is the default status
+        resp.text = ('{}')
+        eventInfo = req.media
+        self.deviceMgr.execRemoteCommand(eventInfo['className'],eventInfo['command'],eventInfo['id'],eventInfo['data'])           
 
 
 def nameToDate(name):
@@ -137,6 +142,7 @@ class RestService:
 #        self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
         self.app.add_route('/event', WebEventHandler2(deviceMgr))
 
+        self.app.add_route('/command', WebCommandHandler(deviceMgr))
         self.app.add_route('/command/{deviceClass}/{deviceId}/{commandName}', WebCommandHandler(deviceMgr))
 
         admin = AdminHandler(deviceMgr)

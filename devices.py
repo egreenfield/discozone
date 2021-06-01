@@ -25,7 +25,7 @@ class Device:
     def shutdown(self):
         None
 
-    def onCommand(self,cmd,data = None):
+    def onCommand(self,cmd,data = {}):
         None
     def raiseEvent(self,eventName,data = None):
         event = {
@@ -48,7 +48,7 @@ class RemoteDevice(Device):
         self.location = config['location']
         self.method = globalConfig.commandMethod
 
-    def onCommand(self,cmd,data = None):
+    def onCommand(self,cmd,data = {}):
         if(self.method == "get"):
             self.mgr.remote.getUrl(f'http://{self.location}:8000/command/{self.className}/{self.id}/{cmd}')
         else:
@@ -96,10 +96,10 @@ class DeviceManager:
             return self.deviceMap[deviceClass]
         return []
 
-    def execRemoteCommand(self, deviceClass, cmd, deviceId, data = None):
+    def execRemoteCommand(self, deviceClass, cmd, deviceId, data = {}):
         self.sendCommand(deviceClass,cmd,deviceId,data)
 
-    def sendCommand(self,deviceClass,cmd,deviceId = None, data = None):
+    def sendCommand(self,deviceClass,cmd,deviceId = None, data = {}):
 
         devices = self.getDevices(deviceClass)
         for aDevice in devices:
