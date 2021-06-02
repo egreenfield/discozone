@@ -1,5 +1,6 @@
 import subprocess
 import threading
+import os
 import time
 from disco import Events
 import devices
@@ -22,7 +23,12 @@ class PlaybackThread (threading.Thread):
         self.tapedeck = tapedeck
 
     def run(self):
-        audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
+        audioFile = self.tapedeck.audioFile
+        if(audioFile[-1] == "/"):
+            files = os.listdir(audioFile)
+            audioFile = self.tapedeck.audioFile + files[self.tapedeck.fileIndex];
+            self.tapedeck.fileIndex = (self.tapedeck.fileIndex+1) % len(files)
+        audioProcess = subprocess.Popen(['aplay', audioFile])
         while(True):
             if (self._abort):
                 audioProcess.terminate()
@@ -41,6 +47,12 @@ class Tapedeck(devices.Device):
     def __init__(self,app):
         devices.Device.__init__(self,app)
         self.thread = None
+        self.fileIndex = 0
+
+
+    def setConfig(self,config,globalConfig):
+        self.audioFile = config.get("audiofile","audio/freakout.wav")
+
 
     def onCommand(self,cmd,data = None):
         if(cmd == TapedeckCommand.START):
