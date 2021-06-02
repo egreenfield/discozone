@@ -6,6 +6,7 @@ import disco
 import RPi.GPIO as GPIO
 import devices
 import time
+import random
 from remote import Remote
 
 from tapedeck import Tapedeck
@@ -102,6 +103,7 @@ class App:
             self.machine.shutdown()    
         GPIO.cleanup()
 
+random.seed()
 app = App()
 
 if __name__ == '__main__':     # Program entrance

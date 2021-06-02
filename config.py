@@ -16,6 +16,7 @@ class Config:
     leader:str = None
     deviceMap = None
     audioFile = None
+    workingHours = None
 
 
     # def loadConfig(self,name,data,configName = None):
@@ -49,6 +50,7 @@ class Config:
                     f.leader = configData['leader']
                 f.serverConfig = configData.get('serverConfig')
                 f.audioFile = configData.get('audioFile')
+                f.workingHours = configData.get('workingHours',None)
         return f
 
 

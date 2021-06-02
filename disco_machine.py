@@ -6,24 +6,25 @@ from video_recorder import VideoRecorderCommand
 from sonar import SonarEvent
 from state_machine import StateMachine
 from timer_device import TimerEvent, TimerCommand
+from datetime import datetime
 import os
 import logging
 log = logging.getLogger(__name__)
+import random
 
 class DiscoMachine(StateMachine):
     
     def __init__(self,config,deviceMgr,danceClient):
         
-        self.config = config
+        self.setConfig(config)
         self.deviceMgr = deviceMgr
         self.danceClient = danceClient
-        self.fileIndex = 0
-
+        self.fileIndex = random.randrange(1000)
         StateMachine.__init__(self,
             initialState = State.LOOKING,
             transitions = {
                 State.LOOKING: {
-                    SonarEvent.PERSON_APPROACHING: State.PLAYING,
+                    SonarEvent.PERSON_APPROACHING: lambda f,t,e : State.PLAYING if self.checkWorkingHours() else None,
                     Events.RemoteStart: State.PLAYING
                 },
                 State.PLAYING: {
@@ -40,16 +41,38 @@ class DiscoMachine(StateMachine):
                     State.PLAYING: lambda event,s,o : self.startDiscoSession(event),
                     State.CLEARING: lambda e,s,o : self.startClearing(),
                     State.LOOKING: lambda e,s,o : self.endDiscoSession(),
+                    '': lambda e,s,o: {
+                        log.info(f'switching from {o} to {s} with event {e}')
+                    }
                 }
             }
         )
+
+    def setConfig(self,config):
+        self.config = config
+
+        self.startTime = self.endTime = None
+        if(config.workingHours != None):
+            try:
+                self.startTime = datetime.strptime(config.workingHours['start'],"%H:%M")
+                self.endTime = datetime.strptime(config.workingHours['end'],"%H:%M")
+            except ValueError:
+                pass
+
+    def checkWorkingHours(self):
+        if self.startTime == None or self.endTime == None:
+            return True 
+        start = datetime.now().replace(hour=self.startTime.hour,minute=self.startTime.minute)
+        end = datetime.now().replace(hour=self.endTime.hour,minute=self.endTime.minute)
+        now = datetime.now()
+        return (now >= start and now <= end)
 
     def pickSong(self):
         audioFile = self.config.audioFile
         if(audioFile[-1] == "/"):
             files = os.listdir(audioFile)
-            result = audioFile + files[self.fileIndex];
             self.fileIndex = (self.fileIndex+1) % len(files)
+            result = audioFile + files[self.fileIndex];
         else:
             result = audioFile
         return result

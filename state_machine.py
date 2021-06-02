@@ -28,6 +28,10 @@ class StateMachine:
     def setState(self,newState,event):
         log.debug(f'switching from {self.state} to {newState}')
         try:
+            self.actions[''][''](event,newState,self.state)
+        except KeyError:
+            pass
+        try:
             self.actions[self.state][''](event,newState,self.state)
         except KeyError:
             pass
