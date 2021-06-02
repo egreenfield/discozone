@@ -6,6 +6,7 @@ from video_recorder import VideoRecorderCommand
 from sonar import SonarEvent
 from state_machine import StateMachine
 from timer_device import TimerEvent, TimerCommand
+import os
 import logging
 log = logging.getLogger(__name__)
 
@@ -16,6 +17,7 @@ class DiscoMachine(StateMachine):
         self.config = config
         self.deviceMgr = deviceMgr
         self.danceClient = danceClient
+        self.fileIndex = 0
 
         StateMachine.__init__(self,
             initialState = State.LOOKING,
@@ -42,6 +44,17 @@ class DiscoMachine(StateMachine):
             }
         )
 
+    def pickSong(self):
+        audioFile = self.config.audioFile
+        if(audioFile[-1] == "/"):
+            files = os.listdir(audioFile)
+            result = audioFile + files[self.fileIndex];
+            self.fileIndex = (self.fileIndex+1) % len(files)
+        else:
+            result = audioFile
+        return result
+
+
     def startDiscoSession(self,event):
         log.info(f'STARTING disco state with event {event}')
         danceID = event['id']
@@ -50,7 +63,7 @@ class DiscoMachine(StateMachine):
         if(self.config.ball):
             self.deviceMgr.sendCommand("ball",DiscoBallCommand.SPIN)
         if(self.config.music):
-            self.deviceMgr.sendCommand("audio",TapedeckCommand.START)
+            self.deviceMgr.sendCommand("audio",TapedeckCommand.PLAY,data = {"song":self.pickSong()})
         if(self.config.video):
             self.deviceMgr.sendCommand("video",VideoRecorderCommand.START,data={
                 "danceID":danceID

@@ -7,7 +7,7 @@ import devices
 
 
 class TapedeckCommand:
-    START = "Tapedeck:start"
+    PLAY = "Tapedeck:start"
     STOP = "Tapedeck:stop"
 
 class TapedeckEvent:
@@ -18,17 +18,13 @@ class PlaybackThread (threading.Thread):
     
     _abort = False
     
-    def __init__(self,tapedeck):
+    def __init__(self,tapedeck,song):
         threading.Thread.__init__(self)
         self.tapedeck = tapedeck
+        self.song = song
 
     def run(self):
-        audioFile = self.tapedeck.audioFile
-        if(audioFile[-1] == "/"):
-            files = os.listdir(audioFile)
-            audioFile = self.tapedeck.audioFile + files[self.tapedeck.fileIndex];
-            self.tapedeck.fileIndex = (self.tapedeck.fileIndex+1) % len(files)
-        audioProcess = subprocess.Popen(['aplay', audioFile])
+        audioProcess = subprocess.Popen(['aplay', self.song])
         while(True):
             if (self._abort):
                 audioProcess.terminate()
@@ -50,20 +46,16 @@ class Tapedeck(devices.Device):
         self.fileIndex = 0
 
 
-    def setConfig(self,config,globalConfig):
-        self.audioFile = config.get("audiofile","audio/freakout.wav")
-
-
     def onCommand(self,cmd,data = None):
-        if(cmd == TapedeckCommand.START):
-            self.start()
+        if(cmd == TapedeckCommand.PLAY):
+            self.start(data['song'])
         elif(cmd == TapedeckCommand.STOP):
             self.stop()
 
-    def start(self):
+    def start(self,song):
         if(self.thread):
             self.thread.abort()
-        self.thread = PlaybackThread(self)
+        self.thread = PlaybackThread(self,song)
         self.thread.start()
 
     def stop(self):

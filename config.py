@@ -15,7 +15,7 @@ class Config:
     # followers:list = field(default_factory=list)
     leader:str = None
     deviceMap = None
-    
+    audioFile = None
 
 
     # def loadConfig(self,name,data,configName = None):
@@ -48,6 +48,7 @@ class Config:
                 if 'leader' in configData:
                     f.leader = configData['leader']
                 f.serverConfig = configData.get('serverConfig')
+                f.audioFile = configData.get('audioFile')
         return f
 
 
