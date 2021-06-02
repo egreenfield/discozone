@@ -11,10 +11,10 @@ class DanceClient():
     def setConfig(self,config):
             self.endpoint = config.get('endpoint',self.endpoint)
 
-    def registerNewDance(self,id):
+    def registerNewDance(self,id,properties = {}):
         url = f'{self.endpoint}/dance/{id}'
         log.info(f'registering new dance at {url}')
-        self.remote.putRequest(url,{})
+        self.remote.putRequest(url,properties)
 
     def registerDanceVideo(self,id,remoteVideoFilename):
         url = f'{self.endpoint}/dance/{id}'

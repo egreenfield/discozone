@@ -57,13 +57,14 @@ class DiscoMachine(StateMachine):
 
     def startDiscoSession(self,event):
         log.info(f'STARTING disco state with event {event}')
+        nextSong = self.pickSong()
         danceID = event['id']
         if(self.danceClient):
-            self.danceClient.registerNewDance(danceID)
+            self.danceClient.registerNewDance(danceID,{"song":nextSong})
         if(self.config.ball):
             self.deviceMgr.sendCommand("ball",DiscoBallCommand.SPIN)
         if(self.config.music):
-            self.deviceMgr.sendCommand("audio",TapedeckCommand.PLAY,data = {"song":self.pickSong()})
+            self.deviceMgr.sendCommand("audio",TapedeckCommand.PLAY,data = {"song":nextSong})
         if(self.config.video):
             self.deviceMgr.sendCommand("video",VideoRecorderCommand.START,data={
                 "danceID":danceID

@@ -141,6 +141,7 @@ use dancedb;
         `reviewed`  tinyint DEFAULT 0,
         `videofile` varchar(256) DEFAULT "",
         `comments`  varchar(256) DEFAULT "",
+        `song`      varchar(256) DEFAULT "",
 
         PRIMARY KEY (`Id`)
         );
