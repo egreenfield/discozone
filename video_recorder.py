@@ -151,9 +151,9 @@ class VideoRecorder(devices.Device):
         self.currentDanceID = danceID
         log.info(f'video name is {self.currentVideoName}')
         if(self.flip):
-            opts = ['raspivid', '--vflip','--hflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
+            opts = ['raspivid', '--vflip','--hflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '50000']
         else:
-            opts = ['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
+            opts = ['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '50000']
         self.videoProcess = subprocess.Popen(opts)
 
     def stop(self):
