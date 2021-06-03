@@ -6,7 +6,6 @@ from collections import deque
 import threading
 import devices
 from twilio.rest import Client
-from remote_storage import S3Storage
 
 import logging
 log = logging.getLogger(__name__)
@@ -21,15 +20,15 @@ class PackagerThread (threading.Thread):
         self.completedVideos = deque()
 
     def run(self):
-        self.findOldJobs()
+#        self.findOldJobs()
         while(True):
             videoName = None
             with self.lock:
                 while not len(self.videos):
                     self.lock.wait()
-                videoName = self.videos.popleft()
+                (videoName,danceID) = self.videos.popleft()
                 log.debug(f'packaging {videoName}')                
-            self._package(videoName)
+            self._package(videoName,danceID)
 
     def h264Name(filename):
         m = re.search(r"(.*)\.h264",filename)
@@ -44,20 +43,23 @@ class PackagerThread (threading.Thread):
         for aFile in files:
             self.videos.append(aFile)
 
-    def _package(self,videoName):
+    def _package(self,videoName,danceID):
         videoRemoved = False
         videoPath = os.path.join(self.recorder.localStorage,videoName)
         h264Path = f'{videoPath}.h264'
         mp4Path =  f'{videoPath}.mp4'
+        remoteVideoFilename = "videos/"+ os.path.basename(mp4Path)
         boxProc = subprocess.Popen(['MP4Box', '-add', h264Path, mp4Path])
         boxProc.wait()
         if os.path.exists(h264Path):
             os.remove(h264Path)             
         if (self.recorder.remoteStorage):
-            uploaded = self.recorder.remoteStorage.upload(mp4Path,"videos/"+ os.path.basename(mp4Path))
+            uploaded = self.recorder.remoteStorage.upload(mp4Path,remoteVideoFilename)
             if(uploaded == True and self.recorder.deleteOnUpload):
                 os.remove(mp4Name)             
                 videoRemoved = True
+        self.recorder.danceClient.registerDanceVideo(danceID,remoteVideoFilename)
+        
         if(videoRemoved):
             return
         self.completedVideos.append(mp4Path)
@@ -66,7 +68,7 @@ class PackagerThread (threading.Thread):
             os.remove(deadVideo)
 
         if(self.recorder.sendSMS):
-            self.sendNotification(f'{videoName}.mp4')
+            self.sendNotification(remoteVideoFilename)
 
     def sendNotification(self,videoFilename):
         account_sid = self.recorder.twilioId
@@ -81,17 +83,20 @@ class PackagerThread (threading.Thread):
                         )
 
     
-    def package(self,videoName):
-        with(self.lock):
-            self.videos.append(videoName)
+    def package(self,videoName,danceID):
+        with self.lock:
+            self.videos.append((videoName,danceID))
             self.lock.notify()
 
 class VideoRecorderCommand:
     START = "Videorecorder:start"
     STOP = "Videorecorder:stop"
 
+class VideoRecorderEventProperties:
+    DANCE_ID = "danceID"
 class VideoRecorder(devices.Device):
     currentVideoName:str = None
+    currentDanceID:str = None
     videoProcess:subprocess.Popen = None
     deleteOnUpload:bool = True
     maxVideoCount:int = 0
@@ -103,12 +108,13 @@ class VideoRecorder(devices.Device):
     twilioId = ""
     twilioToken = ""
 
-    def __init__(self):
-        devices.Device.__init__(self)
-        self.remoteStorage = None
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
+        self.remoteStorage = app.storage
+        self.danceClient = app.danceClient
 
-    def setConfig(self,config):
-        devices.Device.setConfig(self,config)
+    def setConfig(self,config,globalConfig):
+        devices.Device.setConfig(self,config,globalConfig)
         if('localStorage' in config):
             self.localStorage = config['localStorage']
         if('deleteOnUpload' in config):
@@ -126,34 +132,33 @@ class VideoRecorder(devices.Device):
                     self.smsFrom = config['smsFrom']
                 if('smsTo' in config):
                     self.smsTo = config['smsTo']
-        if('storageOptions' in config):
-            self.remoteStorage = S3Storage()
-            self.remoteStorage.setConfig(config['storageOptions'])
 
     def init(self):
         self.packager = PackagerThread(self)
         self.packager.start()
 
-    def onCommand(self,cmd,data = None):
+    def onCommand(self,cmd,data):
         if(cmd == VideoRecorderCommand.START):
-            self.start()
+            danceID = data[VideoRecorderEventProperties.DANCE_ID]
+            self.start(danceID)
         elif(cmd == VideoRecorderCommand.STOP):
             self.stop()
 
 
-    def start(self):
+    def start(self,danceID):
         now = datetime.datetime.now()
         self.currentVideoName =  now.strftime("%Y_%m_%d_%H_%M_%S")
-        print(f'video name is {self.currentVideoName}')
+        self.currentDanceID = danceID
+        log.info(f'video name is {self.currentVideoName}')
         if(self.flip):
-            opts = ['raspivid', '--vflip','--hflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
+            opts = ['raspivid', '--vflip','--hflip','-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '50000']
         else:
-            opts = ['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '30000']
+            opts = ['raspivid', '-o', f'{os.path.join(self.localStorage,self.currentVideoName)}.h264', '-t', '50000']
         self.videoProcess = subprocess.Popen(opts)
 
     def stop(self):
         if(self.videoProcess != None):
             self.videoProcess.terminate()
             self.videoProcess = None
-            self.packager.package(self.currentVideoName)
+            self.packager.package(self.currentVideoName,self.currentDanceID)
             self.currentVideoName = None

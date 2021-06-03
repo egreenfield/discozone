@@ -25,19 +25,23 @@ class StateMachine:
     def shutdown(self):
         None
 
-    def setState(self,newState):
+    def setState(self,newState,event):
         log.debug(f'switching from {self.state} to {newState}')
         try:
-            self.actions[self.state]['']()
+            self.actions[''][''](event,newState,self.state)
+        except KeyError:
+            pass
+        try:
+            self.actions[self.state][''](event,newState,self.state)
         except KeyError:
             pass
 
         try:
-            self.actions[self.state][newState]()
+            self.actions[self.state][newState](event,newState,self.state)
         except KeyError:
             pass
         try:
-            self.actions[''][newState]()
+            self.actions[''][newState](event,newState,self.state)
         except KeyError:
             pass
         self.state = newState
@@ -46,20 +50,21 @@ class StateMachine:
     def processEvent(self,event):        
         log.debug(f'handling event {event}')
         targetState = None
+        eventName = event['name']
         try:
-            targetState = self.transitions[self.state][event]
+            targetState = self.transitions[self.state][eventName]
         except KeyError: 
             pass
         if(targetState == None):
             try:
-                targetState = self.transitions[''][event]
+                targetState = self.transitions[''][eventName]
             except KeyError: 
                 pass
         if callable(targetState):
-            targetState = targetState(self.state, targetState)
+            targetState = targetState(self.state, targetState,event)
         if (targetState == None):
             return
-        self.setState(targetState)
+        self.setState(targetState,event)
 
     def pump(self):
         with self.eventCondition:

@@ -1,5 +1,7 @@
 import RPi.GPIO as GPIO
 import devices
+import logging
+log = logging.getLogger(__name__)
 
 MOTOR_SPEED = 100
 
@@ -20,8 +22,8 @@ class DiscoBallCommand:
 
 class DiscoBall (devices.Device):
 
-    def __init__(self):
-        devices.Device.__init__(self)
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
         self.power = MOTOR_SPEED
 
     def onCommand(self,cmd,data = None):
@@ -40,14 +42,14 @@ class DiscoBall (devices.Device):
         self.p.start(0)
 
     def spin(self):
-        print(f'running ball at {self.power}')
+        log.debug(f'running ball at {self.power}')
         self.motor(128 + 128 * self.power/100.0)
 
     def stop(self):
         self.motor(128)
 
-    def setConfig(self,config):
-        devices.Device.setConfig(self,config)
+    def setConfig(self,config,globalConfig):
+        devices.Device.setConfig(self,config,globalConfig)
         if('power' in config):
             self.power = config['power']
 

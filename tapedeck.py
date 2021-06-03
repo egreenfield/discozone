@@ -1,12 +1,13 @@
 import subprocess
 import threading
+import os
 import time
 from disco import Events
 import devices
 
 
 class TapedeckCommand:
-    START = "Tapedeck:start"
+    PLAY = "Tapedeck:start"
     STOP = "Tapedeck:stop"
 
 class TapedeckEvent:
@@ -17,12 +18,13 @@ class PlaybackThread (threading.Thread):
     
     _abort = False
     
-    def __init__(self,tapedeck):
+    def __init__(self,tapedeck,song):
         threading.Thread.__init__(self)
         self.tapedeck = tapedeck
+        self.song = song
 
     def run(self):
-        audioProcess = subprocess.Popen(['aplay', 'disco.wav',])
+        audioProcess = subprocess.Popen(['aplay', self.song])
         while(True):
             if (self._abort):
                 audioProcess.terminate()
@@ -38,20 +40,22 @@ class PlaybackThread (threading.Thread):
 
 
 class Tapedeck(devices.Device):
-    def __init__(self):
-        devices.Device.__init__(self)
+    def __init__(self,app):
+        devices.Device.__init__(self,app)
         self.thread = None
+        self.fileIndex = 0
+
 
     def onCommand(self,cmd,data = None):
-        if(cmd == TapedeckCommand.START):
-            self.start()
+        if(cmd == TapedeckCommand.PLAY):
+            self.start(data['song'])
         elif(cmd == TapedeckCommand.STOP):
             self.stop()
 
-    def start(self):
+    def start(self,song):
         if(self.thread):
             self.thread.abort()
-        self.thread = PlaybackThread(self)
+        self.thread = PlaybackThread(self,song)
         self.thread.start()
 
     def stop(self):

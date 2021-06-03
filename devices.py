@@ -5,7 +5,7 @@ log = logging.getLogger(__name__)
 
 class Device:
     id = None
-    def __init__(self):
+    def __init__(self,app):
         self.id = str(uuid4())
         self.className = "generic"
         None
@@ -25,22 +25,36 @@ class Device:
     def shutdown(self):
         None
 
-    def onCommand(self,cmd,data = None):
+    def onCommand(self,cmd,data = {}):
         None
-    def raiseEvent(self,event,data = None):
-        self.mgr.raiseEvent(self,event,data)
+    def raiseEvent(self,eventName,data = None):
+        event = {
+            "name": eventName,
+            "id": str(uuid4()),
+            "data": data,
+            "deviceID": self.id,
+            "deviceClass": self.className,
+        }
+        self.mgr.raiseEvent(event)
+        return event
 
-    def setConfig(self,config):
+    def setConfig(self,config,globalConfig):
         None
 
 
 class RemoteDevice(Device):
 
-    def setConfig(self,config):
+    def setConfig(self,config,globalConfig):
         self.location = config['location']
 
-    def onCommand(self,cmd,data = None):
-        self.mgr.request(f'http://{self.location}:8000/command/{self.className}/{self.id}/{cmd}')
+    def onCommand(self,cmd,data = {}):
+        self.mgr.remote.postUrl(f'http://{self.location}:8000/command',{
+            "className":self.className,
+            "id":self.id,
+            "command":cmd,
+            "data":data
+        })
+
 
 class DeviceManager:
     deviceMap: dict
@@ -52,7 +66,7 @@ class DeviceManager:
 
 
     def request(self,url):
-        self.remote.request(url)
+        self.remote.getUrl(url)
 
 
     def addDevice(self,device):
@@ -78,10 +92,10 @@ class DeviceManager:
             return self.deviceMap[deviceClass]
         return []
 
-    def execRemoteCommand(self, deviceClass, cmd, deviceId, data = None):
+    def execRemoteCommand(self, deviceClass, cmd, deviceId, data = {}):
         self.sendCommand(deviceClass,cmd,deviceId,data)
 
-    def sendCommand(self,deviceClass,cmd,deviceId = None, data = None):
+    def sendCommand(self,deviceClass,cmd,deviceId = None, data = {}):
 
         devices = self.getDevices(deviceClass)
         for aDevice in devices:
@@ -93,8 +107,8 @@ class DeviceManager:
     def setEventHandler(self,eventHandler):
         self.eventHandler = eventHandler
 
-    def raiseEvent(self,device,id,data = None):
-        self.eventHandler and self.eventHandler(device,id,data)
+    def raiseEvent(self,event):
+        self.eventHandler and self.eventHandler(event)
 
     def initDevices(self):
         for aName in self.deviceMap:

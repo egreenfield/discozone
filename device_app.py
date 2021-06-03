@@ -6,7 +6,9 @@ import disco
 import RPi.GPIO as GPIO
 import devices
 import time
+import random
 from remote import Remote
+from remote_storage import S3Storage
 
 from tapedeck import Tapedeck
 from video_recorder import VideoRecorder
@@ -14,6 +16,7 @@ from disco_ball import DiscoBall
 from sonar import Sonar
 from devices import RemoteDevice
 from timer_device import TimerDevice
+from dance_client import DanceClient
 
 
 from config import Config
@@ -46,18 +49,20 @@ class App:
     remote: Remote = None
     running:bool = True
     config:Config = None
-
+    danceClient:DanceClient = None
+    storage = None
+    
 ################################################################################################
 # 
 # General
 #
 
 
-    def handleEvent(self,device,event,data):
+    def handleEvent(self,event):
         if (self.config.leader == None):
             self.machine.addEvent(event)
         else:
-            self.remote.request(f'http://{self.config.leader}:8000/event/{event}')
+            self.remote.postUrl(f'http://{self.config.leader}:8000/event',event)
 
     def setup(self):
 
@@ -65,13 +70,21 @@ class App:
         self.config = Config.load('config.json')
 
         self.remote = Remote()
+
+        self.storage = S3Storage()
+        self.storage.setConfig(self.config.storageOptions)
+
+        self.danceClient = DanceClient(self.remote,self.storage)
+
+        if self.config.serverConfig != None:
+            self.danceClient.setConfig(self.config.serverConfig) 
         self.deviceMgr = devices.DeviceManager(self.remote)
-        self.deviceMgr.setEventHandler(lambda device, event, data : self.handleEvent(device,event,data))
-        Config.loadDevicesFromConfigData(self.config,self.deviceMgr)
+        self.deviceMgr.setEventHandler(lambda event : self.handleEvent(event))
+        Config.loadDevicesFromConfigData(self.config,self)
         self.deviceMgr.initDevices()
 
         if(self.config.leader == None):
-            self.machine = DiscoMachine(self.config,self.deviceMgr)    
+            self.machine = DiscoMachine(self.config,self.deviceMgr,self.danceClient)    
             self.machine.setup()
 
 
@@ -97,11 +110,14 @@ class App:
             self.machine.shutdown()    
         GPIO.cleanup()
 
+random.seed()
 app = App()
 
 if __name__ == '__main__':     # Program entrance
 
-    logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"),
+    logLevel = os.environ.get("LOGLEVEL","INFO")
+    print(f'log level is set to {logLevel}')
+    logging.basicConfig(level=logLevel,
         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         datefmt='%H:%M:%S')
     # fh = logging.FileHandler('logs/discoOutput.txt')

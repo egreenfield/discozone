@@ -57,7 +57,7 @@ class DiscoDB:
             q = Query.into(t).columns(*properties.keys()).insert(*properties.values())
         else:
             q = Query.into(t).columns("id",*properties.keys()).insert(danceID,*properties.values())
-        print(f'executing insert string: {str(q)}')
+        logger.debug(f'executing insert string: {str(q)}')
         with self.connection.cursor() as cur:
             #TODO combine these into single atomic statement?
             cur.execute(str(q))            
@@ -86,7 +86,7 @@ class DiscoDB:
         for aKey in properties:
             q = q.set(aKey,properties[aKey])
         q = q.where(t.id == danceID)
-        print(f'executing update string: {str(q)}')
+        logger.debug(f'executing update string: {str(q)}')
         with self.connection.cursor() as cur:
             #TODO combine these into single atomic statement?
             cur.execute(str(q))            
@@ -141,6 +141,7 @@ use dancedb;
         `reviewed`  tinyint DEFAULT 0,
         `videofile` varchar(256) DEFAULT "",
         `comments`  varchar(256) DEFAULT "",
+        `song`      varchar(256) DEFAULT "",
 
         PRIMARY KEY (`Id`)
         );

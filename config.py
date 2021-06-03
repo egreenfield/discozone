@@ -10,16 +10,17 @@ class Config:
     video:bool = True    
     silentWhenAlone:bool = False
     videoStorage:str = None
+    eventMethod:str = "post"
     deviceConfig:dict = field(default_factory=dict)
     # followers:list = field(default_factory=list)
     leader:str = None
     deviceMap = None
-
+    audioFile = None
+    workingHours = None
 
 
     # def loadConfig(self,name,data,configName = None):
     #     srcName = configName or name
-    #     print(f'lc {name} {configName} {srcName}')
     #     if name in data:
     #         setattr(self,name,data[srcName])
 
@@ -47,22 +48,27 @@ class Config:
                     f.deviceConfig = configData['devices']
                 if 'leader' in configData:
                     f.leader = configData['leader']
-                
+                f.serverConfig = configData.get('serverConfig')
+                f.audioFile = configData.get('audioFile')
+                f.workingHours = configData.get('workingHours',None)
+                f.storageOptions = configData.get('storage',{})
         return f
 
 
     @classmethod
-    def loadDevicesFromConfigData(cls,config,deviceMgr):
+    def loadDevicesFromConfigData(cls,config,app):
         deviceConfig = config.deviceConfig
+        deviceMgr = app.deviceMgr
+
         for aDevice in deviceConfig:
             if ('enabled' in aDevice and aDevice['enabled'] == False):
                 continue
             typeName = aDevice['type']
-            device = cls.deviceMap[typeName]()
+            device = cls.deviceMap[typeName](app)
             if ('id' in aDevice):
                 device.setId(aDevice['id'])
             if('class' in aDevice):
                 device.setClass(aDevice['class'])
             if('config' in aDevice):
-                device.setConfig(aDevice['config'])
+                device.setConfig(aDevice['config'],config)
             deviceMgr.addDevice(device)

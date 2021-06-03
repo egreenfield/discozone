@@ -15,17 +15,6 @@ log = logging.getLogger(__name__)
 
 
 
-class RemoteEvent:
-    def __init__(self,event,machine):
-        self.event = event
-        self.machine = machine
-
-    def on_get(self, req, resp):
-        """Handles GET requests"""
-        resp.status = falcon.HTTP_200  # This is the default status
-        resp.text = ('{}')
-        self.machine.addEvent(self.event)        
-
 
 class WebEventHandler():
     def __init__(self,device):
@@ -36,16 +25,31 @@ class WebEventHandler():
         resp.status = falcon.HTTP_200  # This is the default status
         resp.text = ('{}')
         self.device.raiseEvent(eventName)            
-        
+
+class WebEventHandler2():
+    def __init__(self,deviceMgr):
+        self.deviceMgr = deviceMgr
+
+    def on_post(self,req,resp):
+        resp.status = falcon.HTTP_200  # This is the default status        
+        resp.text = ('{}')
+        eventBody = req.media
+        self.deviceMgr.raiseEvent(eventBody)
+
 class WebCommandHandler():
     def __init__(self,deviceMgr):
         self.deviceMgr = deviceMgr
 
     def on_get(self, req, resp,deviceClass,deviceId,commandName):
-        """Handles GET requests"""
         resp.status = falcon.HTTP_200  # This is the default status
         resp.text = ('{}')
         self.deviceMgr.execRemoteCommand(deviceClass,commandName,deviceId)           
+
+    def on_post(self, req, resp):
+        resp.status = falcon.HTTP_200  # This is the default status
+        resp.text = ('{}')
+        eventInfo = req.media
+        self.deviceMgr.execRemoteCommand(eventInfo['className'],eventInfo['command'],eventInfo['id'],eventInfo['data'])           
 
 
 def nameToDate(name):
@@ -132,14 +136,9 @@ class RestService:
         self.machine = machine
         self.app = falcon.App()
 
-        self.app.add_route('/start', RemoteEvent(disco.Events.RemoteStart,machine))
-        self.app.add_route('/stop', RemoteEvent(disco.Events.RemoteStop,machine))
+        self.app.add_route('/event', WebEventHandler2(deviceMgr))
 
-        webDevice = devices.Device()
-        webDevice.setClass("api")
-        deviceMgr.addDevice(webDevice)
-        self.app.add_route('/event/{eventName}', WebEventHandler(webDevice))
-
+        self.app.add_route('/command', WebCommandHandler(deviceMgr))
         self.app.add_route('/command/{deviceClass}/{deviceId}/{commandName}', WebCommandHandler(deviceMgr))
 
         admin = AdminHandler(deviceMgr)
@@ -152,7 +151,6 @@ class RestService:
     def start(self):
         print('Serving on port 8000...')
         videoPath = os.path.join(os.path.dirname(__file__),"videos")
-        print(f'video path is {videoPath}')
         run_simple('', 8000, self.app, use_reloader=False, threaded=True,static_files={
                 '/videos': videoPath
             })
