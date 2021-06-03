@@ -165,7 +165,7 @@ class Sonar(devices.Device):
         with self.watcher.journalLock:
             self.danceClient.logSonarSamples(danceID,{
                 "version": 1,
-                "source": self.id,,
+                "source": self.id,
                 "samples": self.watcher.sampleJournal
             })
         pass
