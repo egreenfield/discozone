@@ -115,7 +115,9 @@ app = App()
 
 if __name__ == '__main__':     # Program entrance
 
-    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"),
+    logLevel = os.environ.get("LOGLEVEL","INFO")
+    print(f'log level is set to {logLevel}')
+    logging.basicConfig(level=logLevel,
         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         datefmt='%H:%M:%S')
     # fh = logging.FileHandler('logs/discoOutput.txt')
