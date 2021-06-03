@@ -63,7 +63,7 @@ class WatchingThread (threading.Thread):
     def journalDistance(self,distance):
         with self.journalLock:
             #print(f'LOOKING: sonar returned distance of {distance}')
-            now = datetime.now()
+            now = datetime.utcnow()
             self.sampleJournal.append({
                 "time": now,
                 "distance": distance

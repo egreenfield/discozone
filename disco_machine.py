@@ -88,7 +88,8 @@ class DiscoMachine(StateMachine):
         })
 
         if(self.danceClient):
-            self.danceClient.registerNewDance(danceID,{"song":nextSong})
+            self.danceClient.registerNewDance(danceID,{"song":nextSong,"time":str(datetime.utcnow())})
+
         if(self.config.ball):
             self.deviceMgr.sendCommand("ball",DiscoBallCommand.SPIN)
         if(self.config.music):
