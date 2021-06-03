@@ -62,7 +62,7 @@ class WatchingThread (threading.Thread):
 
     def journalDistance(self,distance):
         with self.journalLock:
-            #print(f'LOOKING: sonar returned distance of {distance}')
+            #print(f'LOOKING: d: {int(distance)}, min:{self.device.minimumDistance} max:{self.device.detectionDistance}')
             now = datetime.utcnow()
             self.sampleJournal.append({
                 "time": now,
@@ -81,9 +81,9 @@ class WatchingThread (threading.Thread):
 
     def checkForChange(self):
         distance = self.readSensor() # get distance
-        
+
         self.journalDistance(distance)
-        
+
         if (distance < self.device.minimumDistance and distance > 0):
             return
         if (distance < self.device.detectionDistance and distance > 0):
@@ -94,6 +94,7 @@ class WatchingThread (threading.Thread):
             self.lastSeenState = foundState
             self.seenCount = 0
         self.seenCount += 1
+        #print(f'foundState:{foundState},seenCount:{self.seenCount},distaince:{distance}')
         if(self.seenCount < self.device.debounceRate):        
             return
         if (foundState == SonarState.ObjectDetected):
@@ -119,17 +120,17 @@ class WatchingThread (threading.Thread):
 
 class Sonar(devices.Device):
     
-    detectionDistance = DEFAULT_DETECTION_DISTANCE_IN_CM
-    minimumDistance = MINIMUM_DETECTION_DISTANCE
-    triggerPin = DEFAULT_TRIGGER_PIN
-    echoPin = DEFAULT_ECHO_PIN
-    maxSensorRange = DEFAULT_MAX_SENSOR_RANGE
-    state = SonarState.Clear
-    debounceRate = DEFAULT_DEBOUNCE_RATE
 
     def __init__(self,app):
         devices.Device.__init__(self,app)
         self.danceClient = app.danceClient
+        self.detectionDistance = DEFAULT_DETECTION_DISTANCE_IN_CM
+        self.minimumDistance = MINIMUM_DETECTION_DISTANCE
+        self.triggerPin = DEFAULT_TRIGGER_PIN
+        self.echoPin = DEFAULT_ECHO_PIN
+        self.maxSensorRange = DEFAULT_MAX_SENSOR_RANGE
+        self.state = SonarState.Clear
+        self.debounceRate = DEFAULT_DEBOUNCE_RATE
 
     def init(self):
         GPIO.setmode(GPIO.BOARD)      # use PHYSICAL GPIO Numbering
@@ -153,6 +154,9 @@ class Sonar(devices.Device):
             self.maxSensorRange = config['maxSensorRange']
         if('debounceRate' in config):
             self.debounceRate = config['debounceRate']
+        self.journalLength = config.get('journalLength',3)
+        self.journalDelay = config.get('journalDelay',.5)
+
     def shutdown(self):
         self.watcher.terminated = True
         self.watcher.join()
@@ -165,10 +169,6 @@ class Sonar(devices.Device):
             })
         pass
 
-    def setConfig(self,config,globalConfig):
-        devices.Device.setConfig(self,config,globalConfig)
-        self.journalLength = config.get('journalLength',3)
-        self.journalDelay = config.get('journalDelay',.5)
 
     def startLog(self,data):
         threading.Timer(self.journalDelay, lambda : self.log(data['id'])).start()
