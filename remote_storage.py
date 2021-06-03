@@ -1,21 +1,64 @@
 import boto3
 from botocore.config import Config
 import os
+import json
+import datetime
+import threading
+from collections import deque
+
 
 import logging
 log = logging.getLogger(__name__)
 
+def convertDates(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
+
+def toJson(o):
+    return json.dumps(o, default = convertDates)
+
+class S3BackgroundUploader (threading.Thread):
+    def __init__(self,storage):
+        threading.Thread.__init__(self,daemon=True)
+        self.storage = storage
+        self.uploads = deque()
+        self.lock = threading.Condition()
+
+    def run(self):
+        # TODO need to put a lock around the client to prevent background and foreground use
+        while(True):
+            objectName = None
+            with self.lock:
+                while not len(self.uploads):
+                    self.lock.wait()
+                (objectName,body) = self.uploads.popleft()
+                log.debug(f'uploading {objectName}')                
+            self.upload(objectName,body)
+
+    def upload(self,objectName,body):
+        client = self.storage.client
+        client.put_object(Bucket=self.storage.bucketName,
+                            Key=objectName,
+                            Body=(bytes(body.encode('UTF-8'))),
+                            ContentType='application/json'
+        )
+
+    def queueUpload(self,objectName,body):
+        with self.lock:
+            self.uploads.append((objectName,body))
+            self.lock.notify()
+
+
 class S3Storage:
     def __init__(self):
-        self.bucketName = ""
-        self.accessKey = ""
-        self.secretKey = ""
         self.client = None
+        self.uploader = S3BackgroundUploader(self)
+        self.uploader.start()
 
     def setConfig(self,config):
-            self.bucketName = config.get('bucketName',self.bucketName)
-            self.accessKey = config.get('accessKey',self.accessKey)
-            self.secretKey = config.get('secretKey',self.secretKey)
+            self.bucketName = config.get('bucketName',None)
+            if (self.bucketName):
+                self.createClient()
 
     def createClient(self):
         myConfig = Config(
@@ -24,8 +67,10 @@ class S3Storage:
         self.client = boto3.client('s3', config=myConfig)
 
     def upload(self,filename,remoteName=None):
-        if(self.client == None):
-            self.createClient()
+        self.uploadSync(filename,remoteName)
+
+    def uploadSync(self,filename,remoteName=None):
+
         try:
             objectName = remoteName
             if(objectName == None):
@@ -39,3 +84,9 @@ class S3Storage:
             log.debug("Upload failed: S3 Credentials invalid")
             return False
 
+    def uploadObject(self,remoteName,data):
+        self.uploadObjectAsync(remoteName,data)
+
+    def uploadObjectAsync(self,remoteName,data):
+        body = toJson(data)
+        self.uploader.queueUpload(remoteName,body)

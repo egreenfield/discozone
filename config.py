@@ -51,6 +51,7 @@ class Config:
                 f.serverConfig = configData.get('serverConfig')
                 f.audioFile = configData.get('audioFile')
                 f.workingHours = configData.get('workingHours',None)
+                f.storageOptions = configData.get('storage',{})
         return f
 
 

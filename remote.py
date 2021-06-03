@@ -1,9 +1,18 @@
 import requests
 import json
 import logging
+import datetime
+
 log = logging.getLogger(__name__)
 
 from  concurrent.futures import ThreadPoolExecutor
+
+def convertDates(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
+
+def toJson(o):
+    return json.dumps(o, default = convertDates)
 
 class Remote:
     def __init__(self):
@@ -30,7 +39,7 @@ class Remote:
         self.remotePool.submit(Remote.getRequest,url)
 
     def postUrl(self,url,body = {}):
-        self.remotePool.submit(Remote.postRequest,url,json.dumps(body))
+        self.remotePool.submit(Remote.postRequest,url,toJson(body))
 
     def putUrl(self,url,body = {}):
-        self.remotePool.submit(Remote.putRequest,url,json.dumps(body))
+        self.remotePool.submit(Remote.putRequest,url,toJson(body))

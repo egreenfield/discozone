@@ -8,6 +8,7 @@ import devices
 import time
 import random
 from remote import Remote
+from remote_storage import S3Storage
 
 from tapedeck import Tapedeck
 from video_recorder import VideoRecorder
@@ -49,6 +50,7 @@ class App:
     running:bool = True
     config:Config = None
     danceClient:DanceClient = None
+    storage = None
     
 ################################################################################################
 # 
@@ -68,7 +70,12 @@ class App:
         self.config = Config.load('config.json')
 
         self.remote = Remote()
-        self.danceClient = DanceClient(self.remote)
+
+        self.storage = S3Storage()
+        self.storage.setConfig(self.config.storageOptions)
+
+        self.danceClient = DanceClient(self.remote,self.storage)
+
         if self.config.serverConfig != None:
             self.danceClient.setConfig(self.config.serverConfig) 
         self.deviceMgr = devices.DeviceManager(self.remote)

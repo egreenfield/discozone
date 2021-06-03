@@ -3,8 +3,9 @@ log = logging.getLogger(__name__)
 
 
 class DanceClient():
-    def __init__(self,remote):
+    def __init__(self,remote,storage):
         self.remote = remote
+        self.storage = storage
         self.endpoint = ""
         pass
     
@@ -20,3 +21,8 @@ class DanceClient():
         url = f'{self.endpoint}/dance/{id}'
         log.info(f'registering video at {url}')
         self.remote.putRequest(url,{"videofile":remoteVideoFilename})
+
+    def logSonarSamples(self,id,sampleData):
+        objectName = "sonar/"+id
+        log.info(f'registering samples at {objectName}')
+        self.storage.uploadObject(objectName,sampleData)

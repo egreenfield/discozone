@@ -8,6 +8,7 @@ from enum import Enum
 
 import logging
 log = logging.getLogger(__name__)
+from datetime import datetime, timedelta
 
 DEFAULT_TRIGGER_PIN = 16
 DEFAULT_ECHO_PIN = 18
@@ -24,14 +25,19 @@ class SonarState(Enum):
     ObjectDetected = "SonarState:ObjectDetected"
     Clear = "SonarState:Clear"
 
+class SonarCommand:
+    LOG = "Videorecorder:log"
+
 class WatchingThread (threading.Thread):
-    lastSeenState = None
-    seenCount = 0
 
     def __init__(self,device):
         threading.Thread.__init__(self,daemon=True)
+        self.lastSeenState = None
+        self.seenCount = 0
+        self.sampleJournal = []        
         self.device = device
         self.terminated = False
+        self.journalLock = threading.RLock()
 
     def pulseIn(self,pin,level,timeOut): # obtain pulse time of a pin under timeOut
         t0 = time.time()
@@ -54,9 +60,30 @@ class WatchingThread (threading.Thread):
         distance = pingTime * 340.0 / 2.0 / 10000.0     # calculate distance with sound speed 340m/s 
         return distance
 
+    def journalDistance(self,distance):
+        with self.journalLock:
+            #print(f'LOOKING: sonar returned distance of {distance}')
+            now = datetime.now()
+            self.sampleJournal.append({
+                "time": now,
+                "distance": distance
+            })        
+            maxDelta = timedelta(seconds=3)
+            while len(self.sampleJournal) > 0:
+                delta = now - self.sampleJournal[0]['time']
+                if (delta > maxDelta):
+                    self.sampleJournal.pop(0)
+                else:
+                    break            
+
+    def checkReport(self):
+        pass
+
     def checkForChange(self):
         distance = self.readSensor() # get distance
-        #print(f'LOOKING: sonar returned distance of {distance}')
+        
+        self.journalDistance(distance)
+        
         if (distance < self.device.minimumDistance and distance > 0):
             return
         if (distance < self.device.detectionDistance and distance > 0):
@@ -102,6 +129,7 @@ class Sonar(devices.Device):
 
     def __init__(self,app):
         devices.Device.__init__(self,app)
+        self.danceClient = app.danceClient
 
     def init(self):
         GPIO.setmode(GPIO.BOARD)      # use PHYSICAL GPIO Numbering
@@ -128,4 +156,23 @@ class Sonar(devices.Device):
     def shutdown(self):
         self.watcher.terminated = True
         self.watcher.join()
-        
+
+    def log(self,danceID):
+        with self.watcher.journalLock:
+            self.danceClient.logSonarSamples(danceID,{
+                "version": 1,
+                "samples": self.watcher.sampleJournal
+            })
+        pass
+
+    def setConfig(self,config,globalConfig):
+        devices.Device.setConfig(self,config,globalConfig)
+        self.journalLength = config.get('journalLength',3)
+        self.journalDelay = config.get('journalDelay',.5)
+
+    def startLog(self,data):
+        threading.Timer(self.journalDelay, lambda : self.log(data['id'])).start()
+
+    def onCommand(self,cmd,data):
+        if (cmd == SonarCommand.LOG):
+            self.startLog(data)

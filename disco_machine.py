@@ -3,7 +3,7 @@ from disco import State,Events
 from tapedeck import TapedeckCommand, TapedeckEvent
 from disco_ball import DiscoBallCommand
 from video_recorder import VideoRecorderCommand
-from sonar import SonarEvent
+from sonar import SonarCommand, SonarEvent
 from state_machine import StateMachine
 from timer_device import TimerEvent, TimerCommand
 from datetime import datetime
@@ -82,6 +82,11 @@ class DiscoMachine(StateMachine):
         log.info(f'STARTING disco state with event {event}')
         nextSong = self.pickSong()
         danceID = event['id']
+
+        self.deviceMgr.sendCommand("sonar",SonarCommand.LOG,event['deviceID'],data = {
+            "id":danceID
+        })
+
         if(self.danceClient):
             self.danceClient.registerNewDance(danceID,{"song":nextSong})
         if(self.config.ball):
