@@ -26,7 +26,7 @@ class SonarState(Enum):
     Clear = "SonarState:Clear"
 
 class SonarCommand:
-    LOG = "Videorecorder:log"
+    LOG = "SonarCommand:log"
 
 class WatchingThread (threading.Thread):
 
