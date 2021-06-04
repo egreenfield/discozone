@@ -62,7 +62,8 @@ class WatchingThread (threading.Thread):
 
     def journalDistance(self,distance):
         with self.journalLock:
-            #print(f'LOOKING: d: {int(distance)}, min:{self.device.minimumDistance} max:{self.device.detectionDistance}')
+            # if(distance < 100):
+            #     print(f'LOOKING: d: {int(distance)}, min:{self.device.minimumDistance} max:{self.device.detectionDistance}')
             now = datetime.utcnow()
             self.sampleJournal.append({
                 "time": now,
@@ -110,9 +111,19 @@ class WatchingThread (threading.Thread):
 
 
     def run(self):
+        t0 = time.time()
+        pingCount = 0
         while not (self.terminated):
             self.checkForChange()
-            time.sleep(.1)            
+#            pingCount += 1
+#            time.sleep(.01)            
+#            t1 = time.time()
+#            if(t1 - t0 > 5):
+#                print(f' got {pingCount} pings in {t1-t0} seconds, (or {pingCount/(t1-t0)}/sec')
+#                pingCount = 0
+#                t0 = t1
+
+
 
 
 
