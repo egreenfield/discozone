@@ -20,6 +20,7 @@ class DiscoMachine(StateMachine):
         self.deviceMgr = deviceMgr
         self.danceClient = danceClient
         self.fileIndex = random.randrange(1000)
+        self.audioRepeatCount = 0
         StateMachine.__init__(self,
             initialState = State.LOOKING,
             transitions = {
@@ -71,7 +72,10 @@ class DiscoMachine(StateMachine):
         audioFile = self.config.audioFile
         if(audioFile[-1] == "/"):
             files = os.listdir(audioFile)
-            self.fileIndex = (self.fileIndex+1) % len(files)
+            if(self.audioRepeatCount >= self.config.audioRepeatCount):
+                self.fileIndex = (self.fileIndex+1) % len(files)
+                self.audioRepeatCount = 0
+            self.audioRepeatCount += 1
             result = audioFile + files[self.fileIndex];
         else:
             result = audioFile
@@ -83,17 +87,21 @@ class DiscoMachine(StateMachine):
         nextSong = self.pickSong()
         danceID = event['id']
 
+        if(self.config.music):
+            self.deviceMgr.sendCommand("audio",TapedeckCommand.PLAY,data = {"song":nextSong})
+
         self.deviceMgr.sendCommand("sonar",SonarCommand.LOG,event['deviceID'],data = {
             "id":danceID
         })
 
-        if(self.danceClient):
-            self.danceClient.registerNewDance(danceID,{"song":nextSong,"time":str(datetime.utcnow())})
+        try:
+             if(self.danceClient):
+                  self.danceClient.registerNewDance(danceID,{"song":nextSong,"time":str(datetime.utcnow())})
+        except:
+             pass
 
         if(self.config.ball):
             self.deviceMgr.sendCommand("ball",DiscoBallCommand.SPIN)
-        if(self.config.music):
-            self.deviceMgr.sendCommand("audio",TapedeckCommand.PLAY,data = {"song":nextSong})
         if(self.config.video):
             self.deviceMgr.sendCommand("video",VideoRecorderCommand.START,data={
                 "danceID":danceID

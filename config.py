@@ -52,6 +52,7 @@ class Config:
                 f.audioFile = configData.get('audioFile')
                 f.workingHours = configData.get('workingHours',None)
                 f.storageOptions = configData.get('storage',{})
+                f.audioRepeatCount = configData.get('audioRepeatCount',1)
         return f
 
 
