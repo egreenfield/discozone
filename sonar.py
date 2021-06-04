@@ -63,7 +63,7 @@ class WatchingThread (threading.Thread):
     def journalDistance(self,distance):
         with self.journalLock:
             # if(distance < 100):
-            #     print(f'LOOKING: d: {int(distance)}, min:{self.device.minimumDistance} max:{self.device.detectionDistance}')
+            # print(f'LOOKING: d: {int(distance)}, min:{self.device.minimumDistance} max:{self.device.detectionDistance}')
             now = datetime.utcnow()
             self.sampleJournal.append({
                 "time": now,
@@ -100,7 +100,7 @@ class WatchingThread (threading.Thread):
             return
         if (foundState == SonarState.ObjectDetected):
             if(self.device.state == SonarState.Clear):
-                #print(f'SONAR found object {distance}')
+                print(f'-------------------- SONAR found object {distance}')
                 self.device.state = SonarState.ObjectDetected
                 self.device.raiseEvent(SonarEvent.PERSON_APPROACHING)
         else:
@@ -116,7 +116,7 @@ class WatchingThread (threading.Thread):
         while not (self.terminated):
             self.checkForChange()
 #            pingCount += 1
-#            time.sleep(.01)            
+            time.sleep(.1) 
 #            t1 = time.time()
 #            if(t1 - t0 > 5):
 #                print(f' got {pingCount} pings in {t1-t0} seconds, (or {pingCount/(t1-t0)}/sec')
