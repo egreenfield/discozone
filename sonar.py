@@ -62,8 +62,9 @@ class WatchingThread (threading.Thread):
 
     def journalDistance(self,distance):
         with self.journalLock:
-            #print(f'LOOKING: sonar returned distance of {distance}')
-            now = datetime.now()
+            # if(distance < 100):
+            # print(f'LOOKING: d: {int(distance)}, min:{self.device.minimumDistance} max:{self.device.detectionDistance}')
+            now = datetime.utcnow()
             self.sampleJournal.append({
                 "time": now,
                 "distance": distance
@@ -81,9 +82,9 @@ class WatchingThread (threading.Thread):
 
     def checkForChange(self):
         distance = self.readSensor() # get distance
-        
+
         self.journalDistance(distance)
-        
+
         if (distance < self.device.minimumDistance and distance > 0):
             return
         if (distance < self.device.detectionDistance and distance > 0):
@@ -94,11 +95,12 @@ class WatchingThread (threading.Thread):
             self.lastSeenState = foundState
             self.seenCount = 0
         self.seenCount += 1
+        #print(f'foundState:{foundState},seenCount:{self.seenCount},distaince:{distance}')
         if(self.seenCount < self.device.debounceRate):        
             return
         if (foundState == SonarState.ObjectDetected):
             if(self.device.state == SonarState.Clear):
-                #print(f'SONAR found object {distance}')
+                print(f'-------------------- SONAR found object {distance}')
                 self.device.state = SonarState.ObjectDetected
                 self.device.raiseEvent(SonarEvent.PERSON_APPROACHING)
         else:
@@ -109,9 +111,19 @@ class WatchingThread (threading.Thread):
 
 
     def run(self):
+        t0 = time.time()
+        pingCount = 0
         while not (self.terminated):
             self.checkForChange()
-            time.sleep(.1)            
+#            pingCount += 1
+            time.sleep(.1) 
+#            t1 = time.time()
+#            if(t1 - t0 > 5):
+#                print(f' got {pingCount} pings in {t1-t0} seconds, (or {pingCount/(t1-t0)}/sec')
+#                pingCount = 0
+#                t0 = t1
+
+
 
 
 
@@ -119,17 +131,17 @@ class WatchingThread (threading.Thread):
 
 class Sonar(devices.Device):
     
-    detectionDistance = DEFAULT_DETECTION_DISTANCE_IN_CM
-    minimumDistance = MINIMUM_DETECTION_DISTANCE
-    triggerPin = DEFAULT_TRIGGER_PIN
-    echoPin = DEFAULT_ECHO_PIN
-    maxSensorRange = DEFAULT_MAX_SENSOR_RANGE
-    state = SonarState.Clear
-    debounceRate = DEFAULT_DEBOUNCE_RATE
 
     def __init__(self,app):
         devices.Device.__init__(self,app)
         self.danceClient = app.danceClient
+        self.detectionDistance = DEFAULT_DETECTION_DISTANCE_IN_CM
+        self.minimumDistance = MINIMUM_DETECTION_DISTANCE
+        self.triggerPin = DEFAULT_TRIGGER_PIN
+        self.echoPin = DEFAULT_ECHO_PIN
+        self.maxSensorRange = DEFAULT_MAX_SENSOR_RANGE
+        self.state = SonarState.Clear
+        self.debounceRate = DEFAULT_DEBOUNCE_RATE
 
     def init(self):
         GPIO.setmode(GPIO.BOARD)      # use PHYSICAL GPIO Numbering
@@ -153,6 +165,9 @@ class Sonar(devices.Device):
             self.maxSensorRange = config['maxSensorRange']
         if('debounceRate' in config):
             self.debounceRate = config['debounceRate']
+        self.journalLength = config.get('journalLength',3)
+        self.journalDelay = config.get('journalDelay',.5)
+
     def shutdown(self):
         self.watcher.terminated = True
         self.watcher.join()
@@ -161,14 +176,11 @@ class Sonar(devices.Device):
         with self.watcher.journalLock:
             self.danceClient.logSonarSamples(danceID,{
                 "version": 1,
+                "source": self.id,
                 "samples": self.watcher.sampleJournal
             })
         pass
 
-    def setConfig(self,config,globalConfig):
-        devices.Device.setConfig(self,config,globalConfig)
-        self.journalLength = config.get('journalLength',3)
-        self.journalDelay = config.get('journalDelay',.5)
 
     def startLog(self,data):
         threading.Timer(self.journalDelay, lambda : self.log(data['id'])).start()
