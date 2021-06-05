@@ -25,8 +25,9 @@ export class Server extends EventTarget {
             return;
         this.loaded = true;
                     
-        let videoData = await (await fetch(this.apiRoot + "video")).json()
+        let videoData = await (await fetch(this.apiRoot + "dance")).json()
         this.videos = videoData;
+        console.log(`videos are ${this.videos}`)
         this.notifyVideos();
     }
 }
