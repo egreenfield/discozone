@@ -13,7 +13,6 @@ function makeDate(t:string):DateTime {
   return DateTime.fromFormat(t,"yyyy-MM-dd HH:mm:ss",{ zone: "utc" }).setZone("local");
 }
 function formatTime(t:DateTime):string {
- // return DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_SHORT)
   return t.toLocaleString(DateTime.TIME_SIMPLE)
 }
 function formatDateAsDay(t:DateTime):string {
@@ -42,7 +41,6 @@ interface rowDance {
 
 function App({server}: AppProps) {
   // Create the count state.
-  const [count, setCount] = useState(0);
   const [dances, setDances] = useState([] as Array<Dance>);
   const [selectedDance, setSelectedDance] = useState(undefined as (Dance | undefined));
   // Create the counter (+1 every second).
@@ -54,6 +52,9 @@ function App({server}: AppProps) {
     return ()=>{server.removeEventListener(Server.DANCES_CHANGED_EVENT,dancesChanged)}
   }, [server])
 
+  if(selectedDance != undefined) {
+    server.markDanceReviewed(selectedDance);
+  }
 
   function makeRows(dances:Dance[]) {
     let prevDate:DateTime|null = null;
@@ -71,7 +72,9 @@ function App({server}: AppProps) {
       if(row.type == "dance") {
         let dance = row.dance!;
         return (
-          <Table.Row key={dance.id} isSelectable onSelect={() => {setSelectedDance(dance);return true;}}>
+          <Table.Row key={dance.id} isSelectable 
+          backgroundColor={dance.reviewed? "#FFFFFF":"#F5F5FA"}
+          onSelect={() => {setSelectedDance(dance);return true;}}>
             <Table.TextCell>{formatDateAsTime(dance.time)}</Table.TextCell>
             <Table.TextCell>{formatSong(dance.song)}</Table.TextCell>
             <Table.TextCell>{dance.comments}</Table.TextCell>
@@ -80,11 +83,11 @@ function App({server}: AppProps) {
       } else {
         let date = row.date!;
         return (
-          <Table.Row key={date.toLocaleString()} intent="warning"
+          <Table.Row key={date.toLocaleString()} backgroundColor="#858585" height={30} color="#FFFFFF"
           textTransform="uppercase"
           fontWeight={800}
           >
-            <Table.TextCell>{formatDateAsDay(date)}</Table.TextCell>
+            <Table.TextCell ><span style={{color:"#FFFFFF"}}>{formatDateAsDay(date)}</span></Table.TextCell>
             <Table.TextCell></Table.TextCell>
             <Table.TextCell></Table.TextCell>
           </Table.Row>
@@ -95,7 +98,18 @@ function App({server}: AppProps) {
   }
 
   
-  let loadingImage = (dances.length == 0)? <img src={logo} className="App-logo" alt="logo" /> : undefined;
+  let danceTableContent =   (dances.length == 0)? (<img src={logo} width={60} height={60} className="App-logo" alt="logo" />): (
+    <Table className="danceTable" display="flex" flexDirection="column" >
+      <Table.Head>
+        <Table.TextHeaderCell>Time</Table.TextHeaderCell>
+        <Table.TextHeaderCell>Song</Table.TextHeaderCell>
+        <Table.TextHeaderCell>Comments</Table.TextHeaderCell>
+      </Table.Head>
+      <Table.VirtualBody flex="1 1 auto">
+        {makeRows(dances)}
+      </Table.VirtualBody>
+    </Table>
+  )
   let sourceElt = (selectedDance != undefined)? <source src={"http://disco-videos.s3-website-us-west-2.amazonaws.com/"+selectedDance.videofile} type="video/mp4" />:undefined;
   // Return the App component.
   
@@ -129,16 +143,7 @@ function App({server}: AppProps) {
         paddingX={40}
         paddingBottom={12}
       >
-      <Table className="danceTable" display="flex" flexDirection="column" >
-        <Table.Head>
-          <Table.TextHeaderCell>Time</Table.TextHeaderCell>
-          <Table.TextHeaderCell>Song</Table.TextHeaderCell>
-          <Table.TextHeaderCell>Comments</Table.TextHeaderCell>
-        </Table.Head>
-        <Table.VirtualBody flex="1 1 auto">
-          {makeRows(dances)}
-        </Table.VirtualBody>
-      </Table>
+        {danceTableContent}
       </Card>
       <Card
         is="section"
@@ -150,7 +155,7 @@ function App({server}: AppProps) {
         paddingTop={12}
         paddingX={40}
       >
-        <video width="100%" controls>
+        <video width="100%" controls autoPlay key={(selectedDance && selectedDance.videofile) || "none"}>
           {sourceElt}
         </video>
       </Card>

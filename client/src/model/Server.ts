@@ -29,9 +29,22 @@ export class Server extends EventTarget {
             return;
         this.loaded = true;
                     
-        let danceData = await (await fetch(this.apiRoot + "dance")).json()
+        let danceData = await (await fetch(this.apiRoot + "dance?hasVideo=true")).json()
         this.dances = danceData.result == 0? danceData.rows:[];
         console.log(`dances are ${this.dances}`)
         this.notifyDances();
     }
+    markDanceReviewed(dance:Dance) {
+        if(dance.reviewed)
+            return;
+        dance.reviewed = 1
+        fetch(this.apiRoot + `dance/${dance.id}`,{
+            method: 'PUT',
+            body: JSON.stringify({
+                reviewed: 1
+            })
+        })
+        this.notifyDances();
+    }
 }
+

@@ -162,7 +162,7 @@ def hello_world(event, context):
 ##------------------------------------------------------------------------------------------------------------------------------
 
 def list_dances(event, context):
-    rows = db.listDances()
+    rows = db.listDances(event.get('queryStringParameters',{}))
     body = toJson({
         "result":0,
         "rows": rows

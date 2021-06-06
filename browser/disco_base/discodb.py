@@ -1,7 +1,7 @@
 import pymysql
 from pymysql.constants import CLIENT
 import logging
-from pypika import MySQLQuery as Query, Table, Field
+from pypika import MySQLQuery as Query, Table, Field, Order
 
 
 logger = logging.getLogger()
@@ -26,9 +26,22 @@ class DiscoDB:
             cursorclass=pymysql.cursors.DictCursor)
         self.connection.autocommit(True) 
 
-    def listDances(self):
+    def listDances(self,filters={}):
+        t = Table("Dance")
+        q = Query.from_(t).select("*")
+        logger.info(f'filters are {type(filters)} {filters}' )
+        if filters == None: 
+            filters = {}
+        if(filters.get('hasVideo',None) == "true"):
+            q = q.where(t.videofile != "")
+        if(filters.get('isFavorite',None) == "true"):
+            q = q.where(t.favorite == 1)
+        if(filters.get('isReviewed',None) == "false"):
+            q = q.where(t.reviewed == 0)
+        q = q.orderby(t.time,order=Order.desc)
+
         with self.connection.cursor() as cur:
-            cur.execute("SELECT * FROM Dance ORDER BY time DESC")
+            cur.execute(str(q))
             rows = cur.fetchall()
             return rows
 
