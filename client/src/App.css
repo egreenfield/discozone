@@ -1,5 +1,20 @@
+
+
 .App {
   text-align: center;
+  grid-area: cell;
+
+  background-color: #282c34;
+  min-height: 100vh;
+  display: grid;
+  grid-area: cell;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 200px 1fr;
+  grid-template-areas:
+    "header header"
+    "list details";
+  font-size: calc(10px + 2vmin);
+  color: white;
 }
 .App code {
   background: #FFF3;
@@ -21,15 +36,25 @@
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+
+#header {
+  grid-area: header;
+}
+
+#list {
+  grid-area: list;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas:
+    "cell";
+}
+.danceTable {
+  grid-area: cell;
+}
+
+#details {
+  grid-area: details;
 }
 
 .App-link {

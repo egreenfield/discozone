@@ -1,33 +1,37 @@
 
 
 
-export interface Video {
-    key:string;
-    favorite:boolean;
-    captureTime:Date;
+export interface Dance {
+    id:string;
+    favorite:number;
+    videofile:string;
+    comments: string;
+    reviewed: number;
+    song: string;
+    time: string;
 }
 
 
 export class Server extends EventTarget {
-    public static VIDEOS_CHANGED_EVENT = "videosChanged"
-    public videos:Array<Video> = []
+    public static DANCES_CHANGED_EVENT = "dancesChanged"
+    public dances:Array<Dance> = []
     public loaded:boolean = false;
 
     constructor(public apiRoot:string) {
         super()
     }
 
-    private notifyVideos() {
-        this.dispatchEvent(new Event(Server.VIDEOS_CHANGED_EVENT))
+    private notifyDances() {
+        this.dispatchEvent(new Event(Server.DANCES_CHANGED_EVENT))
     }
     async load() {
         if(this.loaded === true)
             return;
         this.loaded = true;
                     
-        let videoData = await (await fetch(this.apiRoot + "dance")).json()
-        this.videos = videoData;
-        console.log(`videos are ${this.videos}`)
-        this.notifyVideos();
+        let danceData = await (await fetch(this.apiRoot + "dance")).json()
+        this.dances = danceData.result == 0? danceData.rows:[];
+        console.log(`dances are ${this.dances}`)
+        this.notifyDances();
     }
 }

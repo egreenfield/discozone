@@ -28,7 +28,7 @@ class DiscoDB:
 
     def listDances(self):
         with self.connection.cursor() as cur:
-            cur.execute("SELECT * FROM Dance ORDER BY time")
+            cur.execute("SELECT * FROM Dance ORDER BY time DESC")
             rows = cur.fetchall()
             return rows
 

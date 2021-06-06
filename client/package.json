@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "evergreen-ui": "^6.0.1",
+    "luxon": "^1.27.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
@@ -19,6 +20,7 @@
     "@snowpack/web-test-runner-plugin": "^0.2.2",
     "@testing-library/react": "^11.2.6",
     "@types/chai": "^4.2.17",
+    "@types/luxon": "^1.26.5",
     "@types/mocha": "^8.2.2",
     "@types/react": "^17.0.4",
     "@types/react-dom": "^17.0.3",
