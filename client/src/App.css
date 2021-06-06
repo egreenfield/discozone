@@ -13,8 +13,6 @@
   grid-template-areas:
     "header header"
     "list details";
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 .App code {
   background: #FFF3;
@@ -38,6 +36,7 @@
 
 
 #header {
+  font-size: calc(10px + 2vmin);
   grid-area: header;
 }
 
@@ -55,6 +54,34 @@
 
 #details {
   grid-area: details;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-areas:
+    "videoToolbar"
+    "videoArea"
+    "danceProperties"
+    "overflow"
+    ;
+}
+
+#videoToolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  grid-area: videoToolbar;
+  padding-bottom: 10px;
+}
+
+#playback {
+  grid-area: videoArea;
+}
+
+#danceProperties {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  grid-area: danceProperties;
 }
 
 .App-link {

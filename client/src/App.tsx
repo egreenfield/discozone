@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { Server, Dance } from './model/Server';
-import { Card, Table } from 'evergreen-ui';
+import { Button, Card, Switch, Table, CaretDownIcon } from 'evergreen-ui';
 import { DateTime } from 'luxon';
 
 interface AppProps {
@@ -121,8 +121,9 @@ function App({server}: AppProps) {
         background="tint2"
         border="muted"
         marginLeft={12}
-        marginY={24}
+        marginY={12}
         paddingTop={12}
+        marginRight={12}
         paddingBottom={12}
         paddingX={40}
         textAlign="left"
@@ -138,7 +139,8 @@ function App({server}: AppProps) {
         background="tint2"
         border="muted"
         marginLeft={12}
-        marginY={24}
+        marginY={12}
+        marginTop={0}
         paddingTop={12}
         paddingX={40}
         paddingBottom={12}
@@ -151,13 +153,23 @@ function App({server}: AppProps) {
         background="tint2"
         border="muted"
         marginLeft={12}
-        marginY={24}
+        marginBottom={12}
+        marginTop={0}
         paddingTop={12}
+        marginRight={12}
         paddingX={40}
       >
-        <video width="100%" controls autoPlay key={(selectedDance && selectedDance.videofile) || "none"}>
+        <div id="videoToolbar">
+          <Switch />   double speed
+        </div>
+        <video id="playback" width="100%" controls autoPlay key={(selectedDance && selectedDance.videofile) || "none"}>
           {sourceElt}
         </video>
+        <div id="danceProperties">
+        <Button marginY={8} marginRight={12} iconAfter={CaretDownIcon}>
+          Download
+        </Button>
+        </div>
       </Card>
 
   </div>
