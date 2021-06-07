@@ -43,6 +43,7 @@ function App({server}: AppProps) {
   // Create the count state.
   const [dances, setDances] = useState([] as Array<Dance>);
   const [selectedDance, setSelectedDance] = useState(undefined as (Dance | undefined));
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   // Create the counter (+1 every second).
   const dancesChanged = ()=> {setDances(server.dances)};
 
@@ -160,9 +161,11 @@ function App({server}: AppProps) {
         paddingX={40}
       >
         <div id="videoToolbar">
-          <Switch />   double speed
+          <Switch checked={playbackSpeed > 1} onChange={(e)=> setPlaybackSpeed(e.target.checked? 3:1)} />&nbsp;&nbsp;speed up
         </div>
-        <video id="playback" width="100%" controls autoPlay key={(selectedDance && selectedDance.videofile) || "none"}>
+        <video id="playback" width="100%"
+          ref={(ref) => ref && (ref.playbackRate = playbackSpeed)}
+          controls autoPlay key={(selectedDance && selectedDance.videofile) || "none"}>
           {sourceElt}
         </video>
         <div id="danceProperties">
