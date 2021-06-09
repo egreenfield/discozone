@@ -62,8 +62,11 @@ class WatchingThread (threading.Thread):
 
     def journalDistance(self,distance):
         with self.journalLock:
-            # if(distance < 100):
-            # print(f'LOOKING: d: {int(distance)}, min:{self.device.minimumDistance} max:{self.device.detectionDistance}')
+            if(int(distance) > self.device.detectionDistance or int(distance) == 0):
+                log.debug(f'{int(distance)}')
+            else:
+                log.debug(f' --- {int(distance)}')
+
             now = datetime.utcnow()
             self.sampleJournal.append({
                 "time": now,
@@ -100,7 +103,7 @@ class WatchingThread (threading.Thread):
             return
         if (foundState == SonarState.ObjectDetected):
             if(self.device.state == SonarState.Clear):
-                print(f'-------------------- SONAR found object {distance}')
+                log.debug(f'-------------------- SONAR found object {distance}')
                 self.device.state = SonarState.ObjectDetected
                 self.device.raiseEvent(SonarEvent.PERSON_APPROACHING)
         else:
@@ -116,7 +119,7 @@ class WatchingThread (threading.Thread):
         while not (self.terminated):
             self.checkForChange()
 #            pingCount += 1
-            time.sleep(.1) 
+            time.sleep(self.device.sleepTime) 
 #            t1 = time.time()
 #            if(t1 - t0 > 5):
 #                print(f' got {pingCount} pings in {t1-t0} seconds, (or {pingCount/(t1-t0)}/sec')
@@ -135,13 +138,7 @@ class Sonar(devices.Device):
     def __init__(self,app):
         devices.Device.__init__(self,app)
         self.danceClient = app.danceClient
-        self.detectionDistance = DEFAULT_DETECTION_DISTANCE_IN_CM
-        self.minimumDistance = MINIMUM_DETECTION_DISTANCE
-        self.triggerPin = DEFAULT_TRIGGER_PIN
-        self.echoPin = DEFAULT_ECHO_PIN
-        self.maxSensorRange = DEFAULT_MAX_SENSOR_RANGE
         self.state = SonarState.Clear
-        self.debounceRate = DEFAULT_DEBOUNCE_RATE
 
     def init(self):
         GPIO.setmode(GPIO.BOARD)      # use PHYSICAL GPIO Numbering
@@ -153,20 +150,16 @@ class Sonar(devices.Device):
 
     def setConfig(self,config,globalConfig):
         devices.Device.setConfig(self,config,globalConfig)
-        if('detectionDistance' in config):
-            self.detectionDistance = config['detectionDistance']
-        if('minimumDistance' in config):
-            self.minimumDistance = config['minimumDistance']
-        if('triggerPin' in config):
-            self.triggerPin = config['triggerPin']
-        if('echoPin' in config):
-            self.echoPin = config['echoPin']
-        if('maxSensorRange' in config):
-            self.maxSensorRange = config['maxSensorRange']
-        if('debounceRate' in config):
-            self.debounceRate = config['debounceRate']
+
+        self.detectionDistance = config.get('detectionDistance',DEFAULT_DETECTION_DISTANCE_IN_CM)
+        self.minimumDistance = config.get('minimumDistance',MINIMUM_DETECTION_DISTANCE)
+        self.triggerPin = config.get('triggerPin',DEFAULT_TRIGGER_PIN)
+        self.echoPin = config.get('echoPin',DEFAULT_ECHO_PIN)
+        self.maxSensorRange = config.get('maxSensorRange',DEFAULT_MAX_SENSOR_RANGE)
+        self.debounceRate = config.get('debounceRate',DEFAULT_DEBOUNCE_RATE)
         self.journalLength = config.get('journalLength',3)
         self.journalDelay = config.get('journalDelay',.5)
+        self.sleepTime = config.get('sleepTime',.1) 
 
     def shutdown(self):
         self.watcher.terminated = True
