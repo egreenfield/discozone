@@ -5,7 +5,7 @@ import './index.css';
 import { Server } from './model/Server';
 
 
-let server = new Server("https://www.twofish.studio/")
+let server = new Server("https://api.twofish.studio/")
 server.load()
 ReactDOM.render(
   <React.StrictMode>

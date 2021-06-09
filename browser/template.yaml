@@ -80,7 +80,7 @@ Resources:
       Name: Disco Api Gateway
       StageName: Prod
       Cors:
-        AllowMethods: "'POST, GET'"
+        AllowMethods: "'POST, GET, PUT'"
         AllowOrigin: "'*'"
         MaxAge: "'600'"
 
