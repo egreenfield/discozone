@@ -20,7 +20,7 @@ class DiscoMachine(StateMachine):
         self.deviceMgr = deviceMgr
         self.danceClient = danceClient
         self.fileIndex = random.randrange(1000)
-        self.audioRepeatCount = 0
+        self.audioRepeatCount = 999999
         StateMachine.__init__(self,
             initialState = State.LOOKING,
             transitions = {
