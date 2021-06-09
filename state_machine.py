@@ -6,6 +6,8 @@ from disco import State
 
 import logging
 log = logging.getLogger(__name__)
+# log.setLevel("DEBUG")
+
 
 class StateMachine:
 

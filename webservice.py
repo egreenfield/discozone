@@ -12,7 +12,7 @@ from functools import reduce
 
 import logging
 log = logging.getLogger(__name__)
-
+# log.setLevel("DEBUG")
 
 
 
@@ -34,6 +34,7 @@ class WebEventHandler2():
         resp.status = falcon.HTTP_200  # This is the default status        
         resp.text = ('{}')
         eventBody = req.media
+        log.debug(f'received event: {eventBody}')
         self.deviceMgr.raiseEvent(eventBody)
 
 class WebCommandHandler():
