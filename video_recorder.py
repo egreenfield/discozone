@@ -56,16 +56,15 @@ class PackagerThread (threading.Thread):
         if (self.recorder.remoteStorage):
             uploaded = self.recorder.remoteStorage.upload(mp4Path,remoteVideoFilename)
             if(uploaded == True and self.recorder.deleteOnUpload):
-                os.remove(mp4Name)             
+                os.remove(mp4Path)             
                 videoRemoved = True
         self.recorder.danceClient.registerDanceVideo(danceID,remoteVideoFilename)
         
-        if(videoRemoved):
-            return
-        self.completedVideos.append(mp4Path)
-        if(self.recorder.maxVideoCount > 0 and len(self.completedVideos) > self.recorder.maxVideoCount):
-            deadVideo = self.completedVideos.popleft()
-            os.remove(deadVideo)
+        if not videoRemoved:
+            self.completedVideos.append(mp4Path)
+            if(self.recorder.maxVideoCount > 0 and len(self.completedVideos) > self.recorder.maxVideoCount):
+                deadVideo = self.completedVideos.popleft()
+                os.remove(deadVideo)
 
         if(self.recorder.sendSMS):
             self.sendNotification(remoteVideoFilename)

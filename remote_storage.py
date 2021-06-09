@@ -40,8 +40,9 @@ class S3BackgroundUploader (threading.Thread):
         client.put_object(Bucket=self.storage.bucketName,
                             Key=objectName,
                             Body=(bytes(body.encode('UTF-8'))),
-                            ContentType='application/json'
+                            ContentType='application/json'                            
         )
+        return True
 
     def queueUpload(self,objectName,body):
         with self.lock:
@@ -67,7 +68,7 @@ class S3Storage:
         self.client = boto3.client('s3', config=myConfig)
 
     def upload(self,filename,remoteName=None):
-        self.uploadSync(filename,remoteName)
+        return self.uploadSync(filename,remoteName)
 
     def uploadSync(self,filename,remoteName=None):
 
