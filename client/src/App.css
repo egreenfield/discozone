@@ -23,13 +23,8 @@
   margin: 0.4rem;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
+  .loadingImage {
     animation: App-logo-spin infinite 20s linear;
   }
 }
@@ -47,6 +42,13 @@
   grid-template-rows: 1fr;
   grid-template-areas:
     "cell";
+}
+.loadingImage {
+  grid-area: cell;
+  justify-self: center;
+  align-self: center;
+  height: 40vmin;
+  pointer-events: none;
 }
 .danceTable {
   grid-area: cell;

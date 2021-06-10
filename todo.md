@@ -1,5 +1,6 @@
 
 Tasks:
+* fix bug where interacting makes selected item dissapear
 * add reject
 * fix logging
 * add comment editing

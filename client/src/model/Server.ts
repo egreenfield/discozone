@@ -25,10 +25,18 @@ export class Server extends EventTarget {
     private notifyDances() {
         this.dispatchEvent(new Event(Server.DANCES_CHANGED_EVENT))
     }
+    async reload() {
+        this.loaded = true;
+        await this._forceLoad();
+    }
     async load() {
         if(this.loaded === true)
             return;
         this.loaded = true;
+        await this._forceLoad();
+    }
+
+    async _forceLoad() {
                     
         let danceData = await (await fetch(this.apiRoot + "dance?hasVideo=true")).json()
         this.dances = danceData.result == 0? danceData.rows:[];
@@ -36,24 +44,23 @@ export class Server extends EventTarget {
         console.log(`dances are ${this.dances}`)
         this.notifyDances();
     }
-    replaceDance(dance:Dance,newValues:Partial<Dance>) {
+    replaceDance(dance:Dance,newValues:Partial<Dance>):Dance {
         let newDance = {...dance,...newValues};
         this.dances[newDance.__index] = newDance;
         this.notifyDances();
         return newDance;
     }
 
-    setFavorite(dance:Dance,newFavorite:boolean) {
-        let newFavoriteValue = newFavorite?1:0;
-        if(dance.favorite == newFavoriteValue)
+    setFavorite(dance:Dance,newFavorite:number) {
+        if(dance.favorite == newFavorite)
             return;
         fetch(this.apiRoot + `dance/${dance.id}`,{
             method: 'PUT',
             body: JSON.stringify({
-                favorite: newFavoriteValue
+                favorite: newFavorite
             })
         })
-        return this.replaceDance(dance,{favorite:newFavoriteValue})
+        return this.replaceDance(dance,{favorite:newFavorite})
     }
 
     markDanceReviewed(dance:Dance) {
