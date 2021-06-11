@@ -49,6 +49,7 @@ enum Filter {
   Unwatched
 }
 const MARK_REVIEWED_DELAY = 3000;
+const FAST_PLAYBACK_SPEED = 5;
 
 
 function App({server}: AppProps) {
@@ -93,7 +94,8 @@ function App({server}: AppProps) {
     if (d != selectedDance) {
       stopReviewTimer();
       if(d && d.reviewed == 0) {
-        startReviewTimer(d)
+        //startReviewTimer(d)
+        setSelectedDance(server.markDanceReviewed(d));
       }  
     }
     _setSelectedDance(d)
@@ -351,7 +353,7 @@ function App({server}: AppProps) {
         paddingX={40}
       >
         <div id="videoToolbar">
-          <Switch checked={playbackSpeed > 1} onChange={(e)=> setPlaybackSpeed(e.target.checked? 3:1)} />&nbsp;&nbsp;speed up
+          <Switch checked={playbackSpeed > 1} onChange={(e)=> setPlaybackSpeed(e.target.checked? FAST_PLAYBACK_SPEED:1)} />&nbsp;&nbsp;speed up
         </div>
         <video id="playback" width="100%"
           ref={(ref) => ref && (ref.playbackRate = playbackSpeed)}
