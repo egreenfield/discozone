@@ -3,7 +3,7 @@ import logo from './discoball.svg';
 import stu from './stu.png';
 import './App.css';
 import { Server, Dance } from './model/Server';
-import { Button, Card, Switch, Table, CaretDownIcon, StarIcon, StarEmptyIcon, EditIcon, IconButton, TextInput, SymbolCircleIcon, DeleteIcon, LinkIcon, toaster, Group, CircleIcon, RefreshIcon } from 'evergreen-ui';
+import { Button, Card, Switch, Table, CaretDownIcon, StarIcon, StarEmptyIcon, EditIcon, IconButton, TextInput, SymbolCircleIcon, DeleteIcon, LinkIcon, toaster, Group, CircleIcon, RefreshIcon, Dialog } from 'evergreen-ui';
 import { DateTime } from 'luxon';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Action, ActionMenu } from './ActionMenu';
@@ -58,6 +58,7 @@ function App({server}: AppProps) {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [editingComment, setEditingComment] = useState(false);
   const [filter, setFilter] = useState(Filter.All);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false)
 
   // Create the counter (+1 every second).
   const dancesChanged = ()=> {console.log("dances changed");  setDances(server.dances)};
@@ -78,11 +79,14 @@ function App({server}: AppProps) {
   let reviewTimerID:number | undefined = undefined;
   const startReviewTimer = (d:Dance) => {
     reviewTimerID = setTimeout(()=>{
+      console.log(`+++ REVIEW TIMER ${reviewTimerID} FIRED`)
       setSelectedDance(server.markDanceReviewed(d));
     },MARK_REVIEWED_DELAY)
+    console.log(`... REVIEW TIMER ${reviewTimerID} SET`)
   }
   const stopReviewTimer = () => {
     clearTimeout(reviewTimerID);
+    console.log(`--- REVIEW TIMER ${reviewTimerID} CLEARED`)
   }
 
   const setSelectedDance = (d:Dance | undefined) => {
@@ -110,6 +114,12 @@ function App({server}: AppProps) {
   const refresh = () => {    
     server.reload();
     setFilter(Filter.All);
+    setSelectedDance(undefined);
+  }
+  const deleteRejected = () => {
+    server.deleteRejected();
+    setFilter(Filter.All);
+    setSelectedDance(undefined);
   }
   
   const unmarkCurrent = () => {
@@ -117,6 +127,7 @@ function App({server}: AppProps) {
       setSelectedDance(server.setFavorite(selectedDance,0));
     }
   }
+  
 
   useEffect(() => {
     server.addEventListener(Server.DANCES_CHANGED_EVENT,dancesChanged)
@@ -134,6 +145,12 @@ function App({server}: AppProps) {
     },[selectedDance]
   );
 
+
+  const confirmDeleteRejected = () => {
+    setFilter(Filter.Rejected);
+    setShowDeleteConfirmation(true);
+  }
+
   const processAction = (action:Action) => {
     switch(action) {
       case Action.ShowAll: setFilter(Filter.All); break;
@@ -141,6 +158,7 @@ function App({server}: AppProps) {
       case Action.ShowRejected: setFilter(Filter.Rejected); break;
       case Action.ShowUnwatched: setFilter(Filter.Unwatched); break;
       case Action.Refresh: refresh(); break;
+      case Action.DeleteRejected: confirmDeleteRejected(); break;
     }
   }
 
@@ -263,6 +281,8 @@ function App({server}: AppProps) {
   let sourceElt = (selectedDance != undefined)? <source src={"http://disco-videos.s3-website-us-west-2.amazonaws.com/"+selectedDance.videofile} type="video/mp4" />:undefined;
   // Return the App component.
   
+
+  
   return (
     <div className="App" >
       <Card
@@ -289,6 +309,19 @@ function App({server}: AppProps) {
         <div style={{marginLeft:15, fontSize:56 }}>Disco Stu</div>
         <div style={{flex: "1 0 auto"}} />
         <ActionMenu server={server} onSelect={processAction} />
+        <Dialog
+          isShown={showDeleteConfirmation}
+          title="The Party's Over"
+          intent="danger"
+          onCloseComplete={() => {setShowDeleteConfirmation(false)}}
+          onConfirm={(close)=> { close(); deleteRejected()}}
+          confirmLabel="Yup"
+          cancelLabel="Nope"
+          minHeightContent={10}
+          hasClose={false}
+        >
+          Last Chance: Delete rejected dances?
+        </Dialog>
       </Card>
       <Card
         is="section"
@@ -303,6 +336,7 @@ function App({server}: AppProps) {
         paddingBottom={12}
       >
         {danceTableContent}
+
       </Card>
       <Card
         is="section"

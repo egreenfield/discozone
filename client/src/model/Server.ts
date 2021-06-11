@@ -74,5 +74,12 @@ export class Server extends EventTarget {
         })
         return this.replaceDance(dance,{reviewed:1})
     }
+    async deleteRejected() {
+        await fetch(this.apiRoot + 'dance/operations/deleteRejected',{
+            method:"POST",
+            body: "{}"
+        });
+        this.reload();
+    }
 }
 
