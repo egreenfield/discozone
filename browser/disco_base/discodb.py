@@ -140,6 +140,24 @@ class DiscoDB:
             rowCount = cur.execute(str(q))          
             return 0 if rowCount > 0 else -1
 
+    def deleteRejected(self):
+
+        t = Table("Dance")
+        getIdsQuery = Query.from_(t).select("id").select("videofile").where(t.favorite == -1)
+
+        with self.connection.cursor() as cur:
+            logger.info(f'executing query: {str(getIdsQuery)}')
+            cur.execute(str(getIdsQuery))          
+            rows = cur.fetchall()
+            
+        # deleteQuery = Query.from_(t).where(t.favorite == -1).delete()
+
+        # with self.connection.cursor() as cur:
+        #     logger.info(f'executing delete string: {str(deleteQuery)}')
+        #     cur.execute(str(deleteQuery))          
+
+        return rows
+
     def resetTables(self):
         dbScript = '''
 

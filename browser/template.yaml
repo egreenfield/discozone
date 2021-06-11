@@ -208,7 +208,24 @@ Resources:
           Properties:
             RestApiId: !Ref DiscoApiGateway
             Path: /dance/{id}
-            Method: delete   
+            Method: delete  
+
+  DeleteRejectedDancesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dance-delete-rejected
+      Handler: server_app.delete_rejected_dances
+      Policies:
+        - VPCAccessPolicy: {}
+        - S3FullAccessPolicy:
+            BucketName: "*"
+      Events:
+        CreateDance:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DiscoApiGateway
+            Path: /dance/operations/deleteRejected
+            Method: post
 
   InitDBFunction:
     Type: AWS::Serverless::Function

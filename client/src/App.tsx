@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import logo from './discoball.svg';
+import stu from './stu.png';
 import './App.css';
 import { Server, Dance } from './model/Server';
-import { Button, Card, Switch, Table, CaretDownIcon, StarIcon, StarEmptyIcon, EditIcon, IconButton, TextInput, SymbolCircleIcon, DeleteIcon, LinkIcon, toaster } from 'evergreen-ui';
+import { Button, Card, Switch, Table, CaretDownIcon, StarIcon, StarEmptyIcon, EditIcon, IconButton, TextInput, SymbolCircleIcon, DeleteIcon, LinkIcon, toaster, Group, CircleIcon, RefreshIcon } from 'evergreen-ui';
 import { DateTime } from 'luxon';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Action, ActionMenu } from './ActionMenu';
@@ -64,6 +65,7 @@ function App({server}: AppProps) {
   const startEditingComment = () => {
     setEditingComment(true)
   }
+
   const copyLink = async () => {
     if(selectedDance == undefined)
       return;
@@ -93,26 +95,41 @@ function App({server}: AppProps) {
     _setSelectedDance(d)
   }
 
+  const markCurrentFavorite = () => {
+    if (selectedDance) {
+      setSelectedDance(server.setFavorite(selectedDance,selectedDance.favorite > 0? 0:1));
+    }
+  }
+
+  const markCurrentRejected = () => {
+    if (selectedDance) {
+      setSelectedDance(server.setFavorite(selectedDance,selectedDance.favorite < 0? 0:-1));
+    }
+  }
+
+  const refresh = () => {    
+    server.reload();
+    setFilter(Filter.All);
+  }
+  
+  const unmarkCurrent = () => {
+    if (selectedDance) {
+      setSelectedDance(server.setFavorite(selectedDance,0));
+    }
+  }
+
   useEffect(() => {
     server.addEventListener(Server.DANCES_CHANGED_EVENT,dancesChanged)
     server.load()
     return ()=>{server.removeEventListener(Server.DANCES_CHANGED_EVENT,dancesChanged)}
   }, [server])
 
-  useHotkeys('f', () => {
-      if (selectedDance) {
-        setSelectedDance(server.setFavorite(selectedDance,selectedDance.favorite > 0? 0:1));
-      }
-    },{
+  useHotkeys('f', markCurrentFavorite,{
       keydown:true
     },[selectedDance]
   );
 
-  useHotkeys('x', () => {
-      if (selectedDance) {
-        setSelectedDance(server.setFavorite(selectedDance,selectedDance.favorite < 0? 0:-1));
-      }
-    },{
+  useHotkeys('x', markCurrentRejected,{
       keydown:true
     },[selectedDance]
   );
@@ -123,6 +140,7 @@ function App({server}: AppProps) {
       case Action.ShowFavorite: setFilter(Filter.Favorited); break;
       case Action.ShowRejected: setFilter(Filter.Rejected); break;
       case Action.ShowUnwatched: setFilter(Filter.Unwatched); break;
+      case Action.Refresh: refresh(); break;
     }
   }
 
@@ -154,7 +172,7 @@ function App({server}: AppProps) {
   );
 
   useHotkeys('r', () => {
-      server.reload();
+      refresh()
     },{
       keydown:true
     }
@@ -267,7 +285,8 @@ function App({server}: AppProps) {
         alignItems="center"
         
       >
-        Disco Stu
+        <img src={stu} />
+        <div style={{marginLeft:15, fontSize:56 }}>Disco Stu</div>
         <div style={{flex: "1 0 auto"}} />
         <ActionMenu server={server} onSelect={processAction} />
       </Card>
@@ -306,15 +325,23 @@ function App({server}: AppProps) {
           {sourceElt}
         </video>
         <div id="danceProperties">
-        {editingComment? 
-          <TextInput value={selectedDance? selectedDance.comments:""} />:
-          <div>{selectedDance? selectedDance.comments:""}</div>
-        }
-        <IconButton marginY={8} marginRight={12} icon={EditIcon} onClick={() => startEditingComment()} />
-        <IconButton marginY={8} marginRight={12} icon={LinkIcon} onClick={() => copyLink()} />
-        <Button marginY={8} marginRight={12} iconAfter={CaretDownIcon}>
-          Download
-        </Button>
+          {editingComment? 
+            <TextInput value={selectedDance? selectedDance.comments:""} />:
+            <div>{selectedDance? selectedDance.comments:""}</div>
+          }
+          <IconButton marginY={8} marginRight={12} icon={EditIcon} onClick={() => startEditingComment()} />
+          <Group marginY={8}>
+          <IconButton disabled={selectedDance == undefined} icon={StarIcon} isActive={selectedDance && selectedDance.favorite == 1} onClick={markCurrentFavorite}/>
+          <IconButton disabled={selectedDance == undefined} icon={CircleIcon} isActive={selectedDance && selectedDance.favorite == 0} onClick={unmarkCurrent}/>
+          <IconButton disabled={selectedDance == undefined} icon={DeleteIcon} isActive={selectedDance && selectedDance.favorite == -1} onClick={markCurrentRejected}/>
+
+          </Group>
+        </div>
+        <div id="danceControls">
+          <IconButton marginY={8} marginRight={12} icon={LinkIcon} onClick={() => copyLink()} />
+          <Button marginY={8} marginRight={12} iconAfter={CaretDownIcon}>
+            Download
+          </Button>
         </div>
       </Card>
 

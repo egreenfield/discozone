@@ -1,4 +1,4 @@
-import { Button, SymbolCircleIcon, DeleteIcon, IconButton, Menu, MenuClosedIcon, MenuIcon, Popover, Position, StarIcon, CircleArrowUpIcon } from 'evergreen-ui';
+import { Button, SymbolCircleIcon, DeleteIcon, IconButton, Menu, MenuClosedIcon, MenuIcon, Popover, Position, StarIcon, CircleArrowUpIcon, RefreshIcon } from 'evergreen-ui';
 import React, { useState, useEffect } from 'react';
 import type { Server } from './model/Server';
 
@@ -7,6 +7,7 @@ export enum Action {
     ShowFavorite,
     ShowRejected,
     ShowUnwatched,
+    Refresh,
     DeleteRejected
 }
 
@@ -38,8 +39,9 @@ export const ActionMenu = ({server,onSelect}: ActionMenuProps) => {
                 </Menu.Item>
                 </Menu.Group>
                 <Menu.Divider />
-                <Menu.Group title="edits">
-                <Menu.Item onSelect={()=> onSelect(Action.DeleteRejected)} icon={DeleteIcon} intent="danger">Delete Rejected Dances</Menu.Item>
+                <Menu.Group title="Actions">
+                <Menu.Item onSelect={()=> sendResult(Action.Refresh)} icon={RefreshIcon}>Refresh Dances</Menu.Item>
+                <Menu.Item onSelect={()=> sendResult(Action.DeleteRejected)} icon={DeleteIcon} intent="danger">Delete Rejected Dances</Menu.Item>
                 </Menu.Group>
             </Menu>
         )}}

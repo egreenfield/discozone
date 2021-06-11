@@ -63,6 +63,7 @@
     "videoToolbar"
     "videoArea"
     "danceProperties"
+    "danceControls"
     "overflow"
     ;
 }
@@ -77,6 +78,13 @@
 
 #playback {
   grid-area: videoArea;
+}
+
+#danceControls {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  grid-area: danceControls;
 }
 
 #danceProperties {

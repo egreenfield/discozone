@@ -12,8 +12,10 @@ from pymysql.constants import CLIENT
 from functools import reduce
 
 from discodb import DiscoDB
+from discofiles import DiscoFilebase
 
 
+DISCO_RESOURCE_BUCKET = "disco-videos"
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -34,6 +36,8 @@ try:
     #logger.info(f'connecting with c:{dbConnection}, u:{dbUsername}, p:{dbPassword}')
     db = DiscoDB(username=dbUsername,password=dbPassword,host=dbConnection,dbName=dbName)
     db.connect()
+    filebase = DiscoFilebase(DISCO_RESOURCE_BUCKET)
+
 except pymysql.MySQLError as e:
     logger.error("ERROR: Unexpected error: Could not connect to MySQL instance.")
     logger.error(e)
@@ -70,7 +74,7 @@ def show_video(event, context):
 
     videoName = event['pathParameters']['id']
     body = f'''<video controls>
-                <source src="http://disco-videos.s3-website-us-west-2.amazonaws.com/{videoName}" type="video/mp4">
+                <source src="http://{DISCO_RESOURCE_BUCKET}.s3-website-us-west-2.amazonaws.com/{videoName}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             '''       
@@ -115,14 +119,14 @@ def homepage(event, context):
     """
 
 
-    bucketName = "disco-videos"
+    bucketName = DISCO_RESOURCE_BUCKET
 
     body = ""
     bucket = s3.Bucket(bucketName)
-    path = "http://disco-videos.s3-website-us-west-2.amazonaws.com/"
+    path = f'http://{DISCO_RESOURCE_BUCKET}.s3-website-us-west-2.amazonaws.com/'
 
     # for object in bucket.objects.all():
-    #     body += f'<a href="http://disco-videos.s3-website-us-west-2.amazonaws.com/{object.key}<br>'
+    #     body += f'<a href="http://{DISCO_RESOURCE_BUCKET}.s3-website-us-west-2.amazonaws.com/{object.key}<br>'
 
     files = bucket.objects.filter(Prefix='videos/')
     files = bucket.objects.all()
@@ -252,6 +256,24 @@ def delete_dance(event, context):
     result = db.deleteDance(id)
     body = toJson({
         "result":result
+    })
+
+    return {
+        "statusCode": 200,
+        "body": body,
+        "headers": jsonHeaders,
+    }
+
+def delete_rejected_dances(event,context):
+
+    rows = db.deleteRejected()
+    files = filebase.deleteDanceFiles(rows)
+    
+    body = toJson({
+        "operation":"deleteRejected",
+        "result":0,
+        "rows": rows,
+        "files": files
     })
 
     return {
