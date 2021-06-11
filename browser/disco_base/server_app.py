@@ -266,14 +266,20 @@ def delete_dance(event, context):
 
 def delete_rejected_dances(event,context):
 
-    rows = db.deleteRejected()
-    files = filebase.deleteDanceFiles(rows)
+    rows = db.listDances({"isRejected":"true"})
+    result = -1
+    
+    if(len(rows) > 0):
+        fileResult = filebase.deleteDanceFiles(rows)
+        if(fileResult == 0):
+            result = db.deleteRejected()
+    else:
+        result = 0
     
     body = toJson({
         "operation":"deleteRejected",
-        "result":0,
+        "result":result,
         "rows": rows,
-        "files": files
     })
 
     return {

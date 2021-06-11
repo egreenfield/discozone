@@ -11,15 +11,19 @@ logger.setLevel(logging.INFO)
 
 
 def extract(objects,dance):
-    objects.append(dance['videofile'])
-    objects.append(f'sonar/{dance["id"]}')
+    videoFile = dance['videofile']
+    sonarFile = f'sonar/{dance["id"]}'
+    if(len(videoFile) > 0):
+        objects.append(videoFile)
+    objects.append(sonarFile)
     return objects
     
 class DiscoFilebase:
     def __init__(self,resourceBucket):
         botoConfig = botocore.config.Config(s3={'addressing_style':'path'})
-        self.s3client = boto3.client('s3',config=botoConfig)
+        self.s3client = boto3.client('s3')
         self.resourceBucket = resourceBucket
+        logger.info(f's3 is {self.s3client}, delete is {self.s3client.delete_objects}')
 
     def deleteDanceFiles(self,dances):
 
@@ -27,12 +31,8 @@ class DiscoFilebase:
         objectNames = reduce(extract,dances,[])
 
         deleteOptions = {
-            'Quiet':True,
+            'Quiet':False,
             'Objects': list(map(lambda objectName: {'Key':objectName},objectNames))
         }
-        return {
-            "Bucket":self.resourceBucket,
-            "Delete":deleteOptions
-        }
-        # response = client.delete_objects(Bucket=resourceBucket,
-        # Delete=deleteOptions)
+        self.s3client.delete_objects(Bucket=self.resourceBucket,Delete=deleteOptions)
+        return 0

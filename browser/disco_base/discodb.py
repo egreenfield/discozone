@@ -36,6 +36,8 @@ class DiscoDB:
             q = q.where(t.videofile != "")
         if(filters.get('isFavorite',None) == "true"):
             q = q.where(t.favorite == 1)
+        if(filters.get('isRejected',None) == "true"):
+            q = q.where(t.favorite == -1)
         if(filters.get('isReviewed',None) == "false"):
             q = q.where(t.reviewed == 0)
         q = q.orderby(t.time,order=Order.desc)
@@ -143,20 +145,13 @@ class DiscoDB:
     def deleteRejected(self):
 
         t = Table("Dance")
-        getIdsQuery = Query.from_(t).select("id").select("videofile").where(t.favorite == -1)
+        deleteQuery = Query.from_(t).where(t.favorite == -1).delete()
 
         with self.connection.cursor() as cur:
-            logger.info(f'executing query: {str(getIdsQuery)}')
-            cur.execute(str(getIdsQuery))          
-            rows = cur.fetchall()
-            
-        # deleteQuery = Query.from_(t).where(t.favorite == -1).delete()
+            logger.info(f'executing delete string: {str(deleteQuery)}')
+            cur.execute(str(deleteQuery))          
 
-        # with self.connection.cursor() as cur:
-        #     logger.info(f'executing delete string: {str(deleteQuery)}')
-        #     cur.execute(str(deleteQuery))          
-
-        return rows
+        return 0
 
     def resetTables(self):
         dbScript = '''
