@@ -32,7 +32,7 @@ class S3BackgroundUploader (threading.Thread):
                 while not len(self.uploads):
                     self.lock.wait()
                 (objectName,body) = self.uploads.popleft()
-                log.debug(f'uploading {objectName}')                
+                log.debug(f'uploading {objectName}')
             self.upload(objectName,body)
 
     def upload(self,objectName,body):
@@ -40,7 +40,7 @@ class S3BackgroundUploader (threading.Thread):
         client.put_object(Bucket=self.storage.bucketName,
                             Key=objectName,
                             Body=(bytes(body.encode('UTF-8'))),
-                            ContentType='application/json'                            
+                            ContentType='application/json'
         )
         return True
 
@@ -69,6 +69,9 @@ class S3Storage:
 
     def upload(self,filename,remoteName=None):
         return self.uploadSync(filename,remoteName)
+
+    def listObjects(self):
+        pass
 
     def uploadSync(self,filename,remoteName=None):
 

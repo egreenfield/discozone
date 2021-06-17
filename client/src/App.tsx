@@ -1,12 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import logo from './discoball.svg';
-import stu from './stu.png';
 import './App.css';
-import { Server, Dance } from './model/Server';
-import { Button, Card, Switch, Table, CaretDownIcon, StarIcon, StarEmptyIcon, EditIcon, IconButton, TextInput, SymbolCircleIcon, DeleteIcon, LinkIcon, toaster, Group, CircleIcon, RefreshIcon, Dialog } from 'evergreen-ui';
+
+import {
+  Button,
+  Card,
+  CaretDownIcon,
+  CircleIcon,
+  DeleteIcon,
+  Dialog,
+  EditIcon,
+  Group,
+  IconButton,
+  LinkIcon,
+  StarIcon,
+  Switch,
+  SymbolCircleIcon,
+  Table,
+  TextInput,
+  toaster,
+} from 'evergreen-ui';
 import { DateTime } from 'luxon';
+import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+
 import { Action, ActionMenu } from './ActionMenu';
+import logo from './discoball.svg';
+import { Dance, Server } from './model/Server';
+import stu from './stu.png';
+
 
 interface AppProps {
   server:Server;
@@ -96,7 +116,7 @@ function App({server}: AppProps) {
       if(d && d.reviewed == 0) {
         //startReviewTimer(d)
         setSelectedDance(server.markDanceReviewed(d));
-      }  
+      }
     }
     _setSelectedDance(d)
   }
@@ -113,7 +133,7 @@ function App({server}: AppProps) {
     }
   }
 
-  const refresh = () => {    
+  const refresh = () => {
     server.reload();
     setFilter(Filter.All);
     setSelectedDance(undefined);
@@ -123,13 +143,13 @@ function App({server}: AppProps) {
     setFilter(Filter.All);
     setSelectedDance(undefined);
   }
-  
+
   const unmarkCurrent = () => {
     if (selectedDance) {
       setSelectedDance(server.setFavorite(selectedDance,0));
     }
   }
-  
+
 
   useEffect(() => {
     server.addEventListener(Server.DANCES_CHANGED_EVENT,dancesChanged)
@@ -216,9 +236,23 @@ function App({server}: AppProps) {
     }
 
   }
+  let audioPlayer:HTMLAudioElement | null = null;
+  const onVideoPlaying = (e:SyntheticEvent<HTMLVideoElement,Event>) => {
+    if(audioPlayer == null)
+      return;
+    audioPlayer.currentTime = e.currentTarget.currentTime;
+    audioPlayer.play();
+  }
+  const onVideoStopped = (e:SyntheticEvent<HTMLVideoElement,Event>) => {
+    console.log("VIDEO STOPPED");
+    audioPlayer && audioPlayer.pause();
+  }
+
+
+
   function makeRows(dances:Dance[]) {
     let prevDate:DateTime|null = null;
-    
+
     let rows = dances.reduce((rows,dance)=>{
       let danceDT = makeDate(dance.time)
       let danceDay = danceDT.set({hour:0,second:0,minute:0,millisecond:0})
@@ -229,7 +263,7 @@ function App({server}: AppProps) {
       rows.push({type:"dance",dance:dance});
       return rows;
     },[] as Array<rowDance>)
-    
+
     let tags = rows.map(row => {
       if(row.type == "dance") {
         let dance = row.dance!;
@@ -260,13 +294,13 @@ function App({server}: AppProps) {
             <Table.TextCell></Table.TextCell>
             <Table.TextCell></Table.TextCell>
           </Table.Row>
-        );  
+        );
       }
     })
     return tags;
   }
 
-  
+
   let danceTableContent =   (dances.length == 0)? (<img className="loadingImage" src={logo} width={60} height={60} />): (
     <Table className="danceTable" display="flex" flexDirection="column" >
       <Table.Head>
@@ -280,11 +314,11 @@ function App({server}: AppProps) {
       </Table.VirtualBody>
     </Table>
   )
-  let sourceElt = (selectedDance != undefined)? <source src={"http://disco-videos.s3-website-us-west-2.amazonaws.com/"+selectedDance.videofile} type="video/mp4" />:undefined;
+  let videoSourceElt = (selectedDance != undefined)? <source src={"http://disco-videos.s3-website-us-west-2.amazonaws.com/"+selectedDance.videofile} type="video/mp4" />:undefined;
+  let audioUrl = (selectedDance? `/audio/${formatSong(selectedDance.song)}.mp3`:"nosong");
+  let audioSourceElt = (selectedDance != undefined && selectedDance.song != "")?<source src={audioUrl} />:undefined;
+  console.log("Audio Url is",audioUrl);
   // Return the App component.
-  
-
-  
   return (
     <div className="App" >
       <Card
@@ -305,7 +339,7 @@ function App({server}: AppProps) {
         display="flex"
         flexDirection="row"
         alignItems="center"
-        
+
       >
         <img src={stu} />
         <div style={{marginLeft:15, fontSize:56 }}>Disco Stu</div>
@@ -355,13 +389,20 @@ function App({server}: AppProps) {
         <div id="videoToolbar">
           <Switch checked={playbackSpeed > 1} onChange={(e)=> setPlaybackSpeed(e.target.checked? FAST_PLAYBACK_SPEED:1)} />&nbsp;&nbsp;speed up
         </div>
+        <audio
+          ref={(ref) => audioPlayer = ref}
+          key={audioUrl}
+          >
+          {audioSourceElt}
+        </audio>
         <video id="playback" width="100%"
           ref={(ref) => ref && (ref.playbackRate = playbackSpeed)}
+          onPlay={onVideoPlaying} onPause={onVideoStopped}
           controls autoPlay key={(selectedDance && selectedDance.videofile) || "none"}>
-          {sourceElt}
+          {videoSourceElt}
         </video>
         <div id="danceProperties">
-          {editingComment? 
+          {editingComment?
             <TextInput value={selectedDance? selectedDance.comments:""} />:
             <div>{selectedDance? selectedDance.comments:""}</div>
           }
