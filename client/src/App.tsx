@@ -26,6 +26,7 @@ import { Action, ActionMenu } from './ActionMenu';
 import logo from './discoball.svg';
 import { Dance, Server } from './model/Server';
 import stu from './stu.png';
+import useQueryParam from './useQueryParam';
 
 
 interface AppProps {
@@ -85,12 +86,12 @@ interface rowDance {
   date?:DateTime;
 }
 
-enum Filter {
-  All,
-  Favorited,
-  Rejected,
-  Unwatched
-}
+
+const kFilterAll = "all";
+const kFilterFavorited = "favorite";
+const kFilterRejected = "rejected";
+const kFilterUnwatched = "unwatched";
+
 const MARK_REVIEWED_DELAY = 3000;
 const FAST_PLAYBACK_SPEED = 5;
 
@@ -101,14 +102,16 @@ function App({server}: AppProps) {
   const [selectedDance, _setSelectedDance] = useState(undefined as (Dance | undefined));
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [editingComment, setEditingComment] = useState(false);
-  const [filter, setFilter] = useState(Filter.All);
+  const [filter,setFilter] = useQueryParam("filter",kFilterAll)
+  const [canEdit,setCanEdit] = useQueryParam("edit","false")
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false)
 
   // Create the counter (+1 every second).
   const dancesChanged = ()=> {console.log("dances changed");  setDances(server.dances)};
 
   const startEditingComment = () => {
-    setEditingComment(true)
+    if(canEdit == "true")
+      setEditingComment(true)
   }
 
   const copyLink = async () => {
@@ -145,12 +148,14 @@ function App({server}: AppProps) {
   }
 
   const markCurrentFavorite = () => {
+    if(canEdit != "true") return;
     if (selectedDance) {
       setSelectedDance(server.setFavorite(selectedDance,selectedDance.favorite > 0? 0:1));
     }
   }
 
   const markCurrentRejected = () => {
+    if(canEdit != "true") return;
     if (selectedDance) {
       setSelectedDance(server.setFavorite(selectedDance,selectedDance.favorite < 0? 0:-1));
     }
@@ -158,16 +163,18 @@ function App({server}: AppProps) {
 
   const refresh = () => {
     server.reload();
-    setFilter(Filter.All);
+    setFilter(kFilterAll);
     setSelectedDance(undefined);
   }
   const deleteRejected = () => {
+    if(canEdit != "true") return;
     server.deleteRejected();
-    setFilter(Filter.All);
+    setFilter(kFilterAll);
     setSelectedDance(undefined);
   }
 
   const unmarkCurrent = () => {
+    if(canEdit != "true") return;
     if (selectedDance) {
       setSelectedDance(server.setFavorite(selectedDance,0));
     }
@@ -192,16 +199,16 @@ function App({server}: AppProps) {
 
 
   const confirmDeleteRejected = () => {
-    setFilter(Filter.Rejected);
+    setFilter(kFilterRejected);
     setShowDeleteConfirmation(true);
   }
 
   const processAction = (action:Action) => {
     switch(action) {
-      case Action.ShowAll: setFilter(Filter.All); break;
-      case Action.ShowFavorite: setFilter(Filter.Favorited); break;
-      case Action.ShowRejected: setFilter(Filter.Rejected); break;
-      case Action.ShowUnwatched: setFilter(Filter.Unwatched); break;
+      case Action.ShowAll: setFilter(kFilterAll); break;
+      case Action.ShowFavorite: setFilter(kFilterFavorited); break;
+      case Action.ShowRejected: setFilter(kFilterRejected); break;
+      case Action.ShowUnwatched: setFilter(kFilterUnwatched); break;
       case Action.Refresh: refresh(); break;
       case Action.DeleteRejected: confirmDeleteRejected(); break;
     }
@@ -245,15 +252,15 @@ function App({server}: AppProps) {
   //   setSelectedDance(server.markDanceReviewed(selectedDance));
   // }
 
-  function applyDanceFilter(dances:Dance[],filter:Filter):Dance[] {
+  function applyDanceFilter(dances:Dance[],filter:string):Dance[] {
     switch(filter) {
-      case Filter.Favorited:
+      case kFilterFavorited:
         return dances.filter(d=>d == selectedDance || d.favorite > 0)
-      case Filter.Rejected:
+      case kFilterRejected:
         return dances.filter(d=>d == selectedDance || d.favorite < 0)
-      case Filter.Unwatched:
+      case kFilterUnwatched:
           return dances.filter(d=>d == selectedDance || d.reviewed == 0)
-      case Filter.All:
+      case kFilterAll:
       default:
         return dances;
     }
