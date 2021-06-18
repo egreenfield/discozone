@@ -26,13 +26,13 @@ class Remote:
     @staticmethod
     def postRequest(url,body):
         log.debug(f'posting {url} with body {body}')
-        headers = {"Content-Type": "application/json"}        
+        headers = {"Content-Type": "application/json"}
         requests.post(url,data = body,headers=headers)
 
     @staticmethod
     def putRequest(url,body):
         log.debug(f'putting {url} with body {body}')
-        headers = {"Content-Type": "application/json"}        
+        headers = {"Content-Type": "application/json"}
         requests.put(url,json = body,headers=headers)
 
     def getUrl(self,url):
@@ -43,3 +43,6 @@ class Remote:
 
     def putUrl(self,url,body = {}):
         self.remotePool.submit(Remote.putRequest,url,toJson(body))
+
+    def getUrlSync(self,url):
+        return requests.get(url)

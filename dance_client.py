@@ -8,7 +8,7 @@ class DanceClient():
         self.storage = storage
         self.endpoint = ""
         pass
-    
+
     def setConfig(self,config):
             self.endpoint = config.get('endpoint',self.endpoint)
 
@@ -26,3 +26,8 @@ class DanceClient():
         objectName = "sonar/"+id
         log.info(f'registering samples at {objectName}')
         self.storage.uploadObject(objectName,sampleData)
+
+    def getDances(self):
+        url = f'{self.endpoint}/dance'
+        results = self.remote.getUrlSync(url)
+        return results.json()["rows"]

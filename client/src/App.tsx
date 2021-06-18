@@ -45,6 +45,29 @@ function formatDateAsTime(t:string):string {
   return formatTime(makeDate(t));
 }
 
+const songs = [
+  "DiscoInferno.mp3",
+  "freakout.mp3",
+  "Funkytown.mp3",
+  "IWillSurvive.mp3",
+  "PlayThatFunky.mp3",
+  "September.mp3",
+  "unknown.mp3",
+  "wearefamily.mp3",
+  "ymca.mp3"
+]
+function getAudioFile(songname:string):string {
+
+  let result = "";
+    if(songname == null || songname == undefined || songname == "") {
+      let idx = Math.floor(Math.random() * songs.length)
+      let randomSong = songs[idx];
+      result = `/audio/${randomSong}`;
+    } else {
+      result = `/audio/${formatSong(songname)}.mp3`;
+    }
+    return result;
+}
 
 function formatSong(s:string):string {
   let re = new RegExp("(.*\/)+([^\/\.]*)\.wav")
@@ -289,8 +312,7 @@ function App({server}: AppProps) {
           textTransform="uppercase"
           fontWeight={800}
           >
-            <Table.TextCell ><span style={{color:"#FFFFFF"}}>{formatDateAsDay(date)}</span></Table.TextCell>
-            <Table.TextCell></Table.TextCell>
+            <Table.TextCell><span style={{color:"#FFFFFF"}}>{formatDateAsDay(date)}</span></Table.TextCell>
             <Table.TextCell></Table.TextCell>
             <Table.TextCell></Table.TextCell>
           </Table.Row>
@@ -315,9 +337,8 @@ function App({server}: AppProps) {
     </Table>
   )
   let videoSourceElt = (selectedDance != undefined)? <source src={"http://disco-videos.s3-website-us-west-2.amazonaws.com/"+selectedDance.videofile} type="video/mp4" />:undefined;
-  let audioUrl = (selectedDance? `/audio/${formatSong(selectedDance.song)}.mp3`:"nosong");
-  let audioSourceElt = (selectedDance != undefined && selectedDance.song != "")?<source src={audioUrl} />:undefined;
-  console.log("Audio Url is",audioUrl);
+  let audioUrl = (selectedDance? getAudioFile(selectedDance.song):"nosong");
+  let audioSourceElt = (selectedDance != undefined)?<source src={audioUrl} />:undefined;
   // Return the App component.
   return (
     <div className="App" >
@@ -391,7 +412,7 @@ function App({server}: AppProps) {
         </div>
         <audio
           ref={(ref) => audioPlayer = ref}
-          key={audioUrl}
+          key={audioUrl + (selectedDance? selectedDance.id:"")}
           >
           {audioSourceElt}
         </audio>

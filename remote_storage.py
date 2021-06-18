@@ -70,8 +70,13 @@ class S3Storage:
     def upload(self,filename,remoteName=None):
         return self.uploadSync(filename,remoteName)
 
-    def listObjects(self):
-        pass
+    def listObjects(self,prefix = ""):
+        # s3 = boto3.resource('s3')
+
+        # bucket = s3.Bucket(self.bucketName)
+        # return list(bucket.objects.filter(Prefix=prefix))
+        response = self.client.list_objects_v2(Bucket=self.bucketName,Prefix=prefix)
+        return response['Contents']
 
     def uploadSync(self,filename,remoteName=None):
 
